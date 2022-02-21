@@ -1,7 +1,10 @@
 #ifndef DISKSTACK
 #define DISKSTACK
 
+#include "disk.h"
+
 class Disk;
+
 
 class DiskStack {
 	private:
@@ -11,15 +14,15 @@ class DiskStack {
 	public:
 		DiskStack();
 		~DiskStack() { delete[] this->stack; }
-		void push(Disk* d);
-		Disk* pop();
-		Disk* top();
+		void push(Disk &d);
+		Disk pop();
+		Disk top();
 		void swap();
 		int getSize() { return this->size; }
 
 		//Operator overloads
-		DiskStack& operator=(DiskStack& other);
-		bool operator==(DiskStack& other);
+		DiskStack& operator=(DiskStack &other);
+		bool operator==(const DiskStack &other) const;
 };
 
 #endif

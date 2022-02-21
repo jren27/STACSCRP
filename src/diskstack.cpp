@@ -6,8 +6,8 @@ DiskStack::DiskStack() {
 	capacity = 4;
 }
 
-void DiskStack::push(Disk* d) {
-	if (this->size = this->capacity) {
+void DiskStack::push(Disk &d) {
+	if (this->size == this->capacity) {
 		//Reallocate stack
 		this->capacity *= 2;
 		Disk* expandStack = new Disk[this->capacity];
@@ -21,20 +21,20 @@ void DiskStack::push(Disk* d) {
 	this->size++;
 }
 
-Disk* DiskStack::DiskStack::pop() {
+Disk DiskStack::DiskStack::pop() {
 	if (size == 0) {
 		//Throw something
 	}
-	Disk* out = this->stack[this->size];
+	Disk out = this->stack[this->size];
 	size--;
 	return out;
 }
 
-Disk* DiskStack::top() {
+Disk DiskStack::top() {
 	if (size == 0) {
 		//Throw something
 	}
-	return this->stack[this->size];
+	return this->stack[this->size-1];
 }
 
 void DiskStack::swap() {
@@ -43,13 +43,13 @@ void DiskStack::swap() {
 	} else if (size == 1) {
 		return; //Just keep the stack the same
 	}
-	Disk* temp = this->stack[this->size];
+	Disk temp = this->stack[this->size];
 	this->stack[this->size] = this->stack[this->size - 1];
 	this->stack[this->size-1] = temp;
 }
 
 //Operator overloads
-DiskStack& DiskStack::operator=(DiskStack& other) {
+DiskStack& DiskStack::operator=(DiskStack &other) {
 	if (this == &other) {
 		return *this;
 	}
@@ -58,15 +58,16 @@ DiskStack& DiskStack::operator=(DiskStack& other) {
 	this->capacity = other.capacity;
 	this->size = 0;
 	for (int i = 0; i < other.capacity; i++) {
-		this->stack[i] = other.stack[i]
+		this->stack[i] = other.stack[i];
 	}
+	return *this;
 }
 
-bool DiskStack::operator==(DiskStack& other) {
+bool DiskStack::operator==(const DiskStack &other) const {
 	if (this->size != other.size) {
 		return false;
 	}
-	for (int i = 0; i < this.capacity; i++) {
+	for (int i = 0; i < this->capacity; i++) {
 		if (this->stack[i] == other.stack[i]) {
 			return false;
 		}

@@ -1,37 +1,31 @@
 #ifndef DISK
 #define DISK
 #include <string>
-#include "diskstack.h"
+
+class DiskStack;
+
 
 using namespace std;
 
 class Disk {
 	private:
 		string identifier;
-		DiskStack stack;
+		DiskStack* stack = NULL;
+		string value = "";
 		bool literal;
 	public:
+		Disk();
 		Disk(string identifier);
-		DiskStack getStack() { return this->stack; }
+		Disk(string identifier, string value);
+		DiskStack* getStack();
 		string getIdentifier() { return this->identifier; }
 		bool isLiteral() { return this->literal; }
-		
-		//Operator overloads
-		Disk& operator=(Disk& other);
-		bool operator==(Disk* other);
-};
-
-class LiteralDisk : public Disk {
-	private:
-		string value; // IE: #10, .3.14, 'y', etc.
-	public:
-		LiteralDisk();
 		string getValue() { return this->value; }
 		void setValue(string value) { this->value = value; }
 
 		//Operator overloads
-		LiteralDisk& operator=(LiteralDisk& other);
-		bool operator==(LiteralDisk* other);
+		Disk& operator=(const Disk &other);
+		bool operator==(const Disk &other) const;
 };
 
 #endif

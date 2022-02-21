@@ -8,13 +8,13 @@
 
 TEST(DiskStackTest, pushPop) {
 	DiskStack ds;
-	LiteralDisk d;
+	Disk d("LTRL", "");
 	string value;
 	for (int i = 0; i < 100; i++) {
 		value = "!" + to_string(rand() % 100);
 		d.setValue(value);
-		ds.push(&d);
+		ds.push(d);
 		EXPECT_EQ(ds.getSize(), i + 1);
-		EXPECT_EQ(ds.top(), &d);
+		EXPECT_EQ(ds.top(), d);
 	}
 }
