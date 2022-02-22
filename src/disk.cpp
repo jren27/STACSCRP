@@ -8,8 +8,10 @@ Disk::Disk() {
 
 Disk::Disk(string identifier) {
 	this->identifier = identifier;
-	stack = new DiskStack();
-	this->literal = false;
+	this->literal = (identifier == "LTRL");
+	if (this->literal) {
+		stack = new DiskStack();
+	}
 }
 
 Disk::Disk(string identifier, string value) {

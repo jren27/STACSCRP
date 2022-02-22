@@ -25,9 +25,8 @@ Disk DiskStack::DiskStack::pop() {
 	if (size == 0) {
 		//Throw something
 	}
-	Disk out = this->stack[this->size];
 	size--;
-	return out;
+	return this->stack[this->size];
 }
 
 Disk DiskStack::top() {
@@ -56,7 +55,7 @@ DiskStack& DiskStack::operator=(DiskStack &other) {
 	delete[] this->stack;
 	this->stack = new Disk[other.capacity];
 	this->capacity = other.capacity;
-	this->size = 0;
+	this->size = other.size;
 	for (int i = 0; i < other.capacity; i++) {
 		this->stack[i] = other.stack[i];
 	}
@@ -68,7 +67,7 @@ bool DiskStack::operator==(const DiskStack &other) const {
 		return false;
 	}
 	for (int i = 0; i < this->capacity; i++) {
-		if (this->stack[i] == other.stack[i]) {
+		if (!(this->stack[i] == other.stack[i])) {
 			return false;
 		}
 	}
