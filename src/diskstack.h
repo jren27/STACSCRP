@@ -1,6 +1,7 @@
 #ifndef DISKSTACK
 #define DISKSTACK
 
+#include <exception>
 #include "disk.h"
 
 class Disk;
@@ -13,7 +14,8 @@ class DiskStack {
 		int capacity;
 	public:
 		DiskStack();
-		~DiskStack() { delete[] this->stack; }
+		DiskStack(DiskStack& ds);
+		virtual ~DiskStack();
 		void push(Disk &d);
 		Disk pop();
 		Disk top();

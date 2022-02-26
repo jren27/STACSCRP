@@ -9,19 +9,18 @@ using namespace std;
 
 class Disk {
 	private:
-		string identifier;
 		DiskStack* stack = NULL;
 		string value = "";
-		bool literal;
+		bool literal = false;
 	public:
 		Disk();
-		Disk(string identifier);
-		Disk(string identifier, string value);
+		Disk(string value);
+		virtual ~Disk();
 		DiskStack* getStack();
-		string getIdentifier() { return this->identifier; }
-		bool isLiteral() { return this->literal; }
-		string getValue() { return this->value; }
+		bool isLiteral() { return literal; }
+		string getValue() { return value; }
 		void setValue(string value) { this->value = value; }
+		void reset();
 
 		//Operator overloads
 		Disk& operator=(const Disk &other);

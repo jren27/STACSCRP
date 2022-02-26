@@ -2,40 +2,38 @@
 #include "diskstack.h"
 
 Disk::Disk() {
-	this->identifier = "";
-	this->literal = false;
+	literal = false;
 }
 
-Disk::Disk(string identifier) {
-	this->identifier = identifier;
-	this->literal = (identifier == "LTRL");
-	if (this->literal) {
-		stack = new DiskStack();
-	}
+Disk::Disk(string value) {
+	this->value = value;
+	literal = true;
 }
 
-Disk::Disk(string identifier, string value) {
-	this->identifier = identifier;
-	this->literal = true;
+Disk::~Disk() {
+	delete stack;
 }
 
-DiskStack* Disk::getStack() { return this->stack; }
+DiskStack* Disk::getStack() { return stack; }
+
+void Disk::reset() {
+	delete stack;
+	stack = NULL;
+	value = "";
+	literal = false;
+}
 
 //Operator overloads
 Disk& Disk::operator=(const Disk &other) {
 	if (this == &other) {
 		return *this;
 	}
-	this->identifier = other.identifier;
 	this->stack = other.stack;
 	this->value = other.value;
 	return *this;
 }
 
 bool Disk::operator==(const Disk &other) const {
-	//lmao what
-	return (this->identifier == other.identifier)
-		&& (this->stack == other.stack)
-		&& (this->value == other.value);
+	return (this->stack == other.stack) && (this->value == other.value);
 }
 

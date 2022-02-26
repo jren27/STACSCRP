@@ -1,4 +1,6 @@
+#include <stdexcept>
 #include "diskstack.h"
+#include <iostream> //DEBUG!
 
 DiskStack::DiskStack() {
 	stack = new Disk[4];
@@ -6,34 +8,48 @@ DiskStack::DiskStack() {
 	capacity = 4;
 }
 
-void DiskStack::push(Disk &d) {
-	if (this->size == this->capacity) {
-		//Reallocate stack
-		this->capacity *= 2;
-		Disk* expandStack = new Disk[this->capacity];
-		for (int i = 0; i < this->size; i++) {
-			expandStack[i] = this->stack[i];
-		}
-		delete[] this->stack;
-		this->stack = expandStack;
+DiskStack::DiskStack(DiskStack& ds) {	
+	stack = new Disk[ds.capacity];
+	this->capacity = ds.capacity;
+	this->size = ds.size;
+	for (int i = 0; i < ds.capacity; i++) {
+		this->stack[i] = ds.stack[i];
 	}
-	this->stack[this->size] = d;
-	this->size++;
+}
+
+DiskStack::~DiskStack() {
+	delete[] stack;
+}
+
+void DiskStack::push(Disk &d) {
+	if (size == capacity) {
+		//Reallocate stack
+		capacity *= 2;
+		Disk* expandStack = new Disk[capacity];
+		for (int i = 0; i < size; i++) {
+			expandStack[i] = stack[i];
+		}
+		delete[] stack;
+		stack = expandStack;
+	}
+	stack[size] = d;
+	size++;
 }
 
 Disk DiskStack::DiskStack::pop() {
 	if (size == 0) {
-		//Throw something
+		throw runtime_error("Stack size is not 0");
 	}
+	//stack[size].reset();
 	size--;
-	return this->stack[this->size];
+	return stack[size];
 }
 
 Disk DiskStack::top() {
 	if (size == 0) {
 		//Throw something
 	}
-	return this->stack[this->size-1];
+	return stack[size-1];
 }
 
 void DiskStack::swap() {
@@ -42,9 +58,9 @@ void DiskStack::swap() {
 	} else if (size == 1) {
 		return; //Just keep the stack the same
 	}
-	Disk temp = this->stack[this->size];
-	this->stack[this->size] = this->stack[this->size - 1];
-	this->stack[this->size-1] = temp;
+	Disk temp = stack[size];
+	stack[size] = stack[size - 1];
+	stack[size-1] = temp;
 }
 
 //Operator overloads
@@ -52,8 +68,8 @@ DiskStack& DiskStack::operator=(DiskStack &other) {
 	if (this == &other) {
 		return *this;
 	}
-	delete[] this->stack;
-	this->stack = new Disk[other.capacity];
+	delete[] stack;
+	stack = new Disk[other.capacity];
 	this->capacity = other.capacity;
 	this->size = other.size;
 	for (int i = 0; i < other.capacity; i++) {
@@ -66,7 +82,7 @@ bool DiskStack::operator==(const DiskStack &other) const {
 	if (this->size != other.size) {
 		return false;
 	}
-	for (int i = 0; i < this->capacity; i++) {
+	for (int i = 0; i < capacity; i++) {
 		if (!(this->stack[i] == other.stack[i])) {
 			return false;
 		}
