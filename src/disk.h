@@ -13,8 +13,7 @@ class Disk {
 		string value = "";
 		bool literal = false;
 	public:
-		Disk();
-		Disk(string value);
+		Disk(string value = "NULL", bool literal = true);
 		virtual ~Disk();
 		DiskStack* getStack();
 		bool isLiteral() { return literal; }

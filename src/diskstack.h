@@ -6,7 +6,6 @@
 
 class Disk;
 
-
 class DiskStack {
 	private:
 		Disk* stack;

@@ -8,7 +8,7 @@ DiskStack::DiskStack() {
 	capacity = 4;
 }
 
-DiskStack::DiskStack(DiskStack& ds) {	
+DiskStack::DiskStack(DiskStack& ds) {
 	stack = new Disk[ds.capacity];
 	this->capacity = ds.capacity;
 	this->size = ds.size;
@@ -38,7 +38,7 @@ void DiskStack::push(Disk &d) {
 
 Disk DiskStack::DiskStack::pop() {
 	if (size == 0) {
-		throw runtime_error("Stack size is not 0");
+		throw runtime_error("Stack size is 0");
 	}
 	//stack[size].reset();
 	size--;
@@ -47,20 +47,20 @@ Disk DiskStack::DiskStack::pop() {
 
 Disk DiskStack::top() {
 	if (size == 0) {
-		//Throw something
+		throw runtime_error("Stack size is 0");
 	}
 	return stack[size-1];
 }
 
 void DiskStack::swap() {
 	if (size == 0) {
-		//Throw something
+		throw runtime_error("Stack size is 0");
 	} else if (size == 1) {
 		return; //Just keep the stack the same
 	}
-	Disk temp = stack[size];
-	stack[size] = stack[size - 1];
-	stack[size-1] = temp;
+	Disk temp = stack[size - 1];
+	stack[size - 1] = stack[size - 2];
+	stack[size - 2] = temp;
 }
 
 //Operator overloads

@@ -1,13 +1,13 @@
 #include "disk.h"
 #include "diskstack.h"
+#include <iostream> // DEBUG!!!!
 
-Disk::Disk() {
-	literal = false;
-}
-
-Disk::Disk(string value) {
+Disk::Disk(string value, bool literal) {
 	this->value = value;
-	literal = true;
+	this->literal = literal;
+	if (!this->literal) {
+		stack = new DiskStack();
+	}
 }
 
 Disk::~Disk() {
@@ -28,8 +28,14 @@ Disk& Disk::operator=(const Disk &other) {
 	if (this == &other) {
 		return *this;
 	}
-	this->stack = other.stack;
+	delete stack;
+	if (other.stack == NULL) {
+		stack = NULL;
+	} else {
+		this->stack = new DiskStack(*other.stack);
+	}
 	this->value = other.value;
+	this->literal = other.literal;
 	return *this;
 }
 
