@@ -1,10 +1,10 @@
 build:
 	clear
-	rm -f STACSCRP
-	g++ -g -Wall stacscrp.cpp src/* -o STACSCRP
+	rm -f stacscrp
+	g++ -g -Wall stacscrp.cpp src/* -o stacscrp
 
 run:
-	./STACSCRP
+	./stacscrp
 
 buildtestbench:
 	clear
@@ -15,7 +15,7 @@ runtestbench:
 	./testbench
 
 valgrind:
-	valgrind --tool=memcheck --leak-check=yes ./STACSCRP
+	valgrind --tool=memcheck --leak-check=yes ./stacscrp
 
 valgrindtestbench:
 	valgrind --tool=memcheck --leak-check=yes ./testbench

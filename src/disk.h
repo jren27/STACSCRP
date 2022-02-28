@@ -10,15 +10,17 @@ using namespace std;
 class Disk {
 	private:
 		DiskStack* stack = NULL;
-		string value = "";
+		double value; // Doubles can store ints, chars, bools
 		bool literal = false;
 	public:
-		Disk(string value = "NULL", bool literal = true);
+		Disk(double value = 0, bool literal = true);
 		virtual ~Disk();
 		DiskStack* getStack();
 		bool isLiteral() { return literal; }
-		string getValue() { return value; }
-		void setValue(string value) { this->value = value; }
+		double getValue() { return value; }
+		char getValueChar() { return (char)value; }
+		void setValue(double value) { this->value = value; }
+		void setValueChar(char value) { this->value = (double)value; }
 		void reset();
 
 		//Operator overloads

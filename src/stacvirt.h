@@ -7,6 +7,7 @@
 #include <string>
 
 struct Operation {
+	int stack;
 	string codeword;
 	vector<string> arguments;
 };
@@ -15,14 +16,19 @@ struct Operation {
 class StacVirt {
 	private:
 		DiskStack* stacks;
-		Disk grabbedDisk;
-		unsigned int line;
+		// temp is declared here to save time reallocating/freeing
+		Disk grabbedDisk, temp;
+		unsigned int lineNum;
 		bool stop;
+		Operation parseToOperation(vector<string> arguments);
 		bool checkArguments(vector<string> arguments, int argCount);
+		bool isTopLiteral(int stack);
+		bool getTopTwoLiteral(int stack, double &top, double &secondTop);
+		void replace(int stack);
 
 	public:
 		StacVirt();
-		bool isStopped() { return this->stop; }
+		bool isStopped() { return stop; }
 		void executeLine(string &line);
 };
 

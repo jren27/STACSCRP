@@ -2,7 +2,7 @@
 #include "diskstack.h"
 #include <iostream> // DEBUG!!!!
 
-Disk::Disk(string value, bool literal) {
+Disk::Disk(double value, bool literal) {
 	this->value = value;
 	this->literal = literal;
 	if (!this->literal) {
@@ -19,7 +19,7 @@ DiskStack* Disk::getStack() { return stack; }
 void Disk::reset() {
 	delete stack;
 	stack = NULL;
-	value = "";
+	value = 0;
 	literal = false;
 }
 

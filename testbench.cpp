@@ -13,7 +13,7 @@ TEST(DiskStack, pushPop) {
 	// Push/top tests
 	for (int i = 0; i < 100; i++) {
 		for (int j = 0; j < 100; j++) {
-			d = Disk("!" + to_string(rand() % 100));
+			d = Disk(rand() % 100);
 			ds.push(d);
 			ASSERT_EQ(ds.getSize(), j + 1);
 			ASSERT_EQ(ds.top(), d);
@@ -34,7 +34,7 @@ TEST(DiskStack, copyEquiv) {
 		DiskStack ds1;
 		Disk d;
 		for (int j = 0; j < 100; j++) {
-			d = Disk("!" + to_string(rand() % 100));
+			d = Disk(rand() % 100);
 			ds1.push(d);
 		}
 		DiskStack ds2 = DiskStack(ds1);
@@ -50,13 +50,13 @@ TEST(DiskStack, copyEquiv) {
 }
 
 TEST(DiskStack, swap) {
-	Disk topswap = Disk("top");
+	Disk topswap = Disk(101);
 	for (int i = 0; i < 100; i++) {	
 		DiskStack ds;
 		Disk d;
 		ds.push(topswap);
 		for (int j = 0; j < 100; j++) {
-			d = Disk("!" + to_string(rand() % 100));
+			d = Disk(rand() % 100);
 			ds.push(d);
 			ASSERT_EQ(ds.top(), d);
 			ds.swap();
@@ -70,14 +70,20 @@ TEST(DiskStack, swap) {
 TEST(Disk, fillDisk) {
 	Disk d, fillDisk;
 	for (int i = 0; i < 100; i++) {
-		d = Disk("NULL", false);
-		ASSERT_EQ(d.getValue(), "NULL");
+		d = Disk(0, false);
 		ASSERT_EQ(d.isLiteral(), false);
 		for (int j = 0; j < 100; j++) {
-			fillDisk = Disk("!" + to_string(rand() % 100));
+			fillDisk = Disk(rand() % 100);
 			d.getStack()->push(fillDisk);
 			ASSERT_EQ(d.getStack()->top(), fillDisk);
 			ASSERT_EQ(d.getStack()->getSize(), j + 1);
+		}
+		Disk topd, popd;
+		for (int j = 100; j > 0; j--) {
+			topd = d.getStack()->top();
+			popd = d.getStack()->pop();
+			ASSERT_EQ(topd, popd);
+			ASSERT_EQ(d.getStack()->getSize(), j-1);
 		}
 	}
 }
