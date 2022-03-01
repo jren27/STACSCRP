@@ -90,7 +90,7 @@ void StacVirt::executeLine(string &line) {
 		return;
 	}
 	//--- ACTUAL EXECUTION LOGIC ---
-	double top, secondTop;
+	double tempVal1, tempVal2;
 	//TODO finish this bigass if statement
 	if (op.codeword == "POP") { // Stack manipulation
 		if (checkArguments(op.arguments, 0))
@@ -115,46 +115,86 @@ void StacVirt::executeLine(string &line) {
 			stacks[op.stack].top().getStack()->push(temp);
 			}
 	} else if (op.codeword == "ADD") { // Arithmetic + logic
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk(top + secondTop);
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk(tempVal1 + tempVal2);
 			replace(op.stack);
 		}
 	} else if (op.codeword == "SUB") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk(top - secondTop);
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk(tempVal2 - tempVal1);
 			replace(op.stack);
 		}
 	} else if (op.codeword == "MUL") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk(top * secondTop);
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk(tempVal1 * tempVal2);
 			replace(op.stack);
 		}
 	} else if (op.codeword == "DIV") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk(top / secondTop);
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk(tempVal2 / tempVal1);
 			replace(op.stack);
 		}
 	} else if (op.codeword == "AND") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk((int)(top && secondTop));
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 && tempVal2));
 			replace(op.stack);
 		}
 	} else if (op.codeword == "OR") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk((int)(top || secondTop));
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 || tempVal2));
 			replace(op.stack);
 		}
 	} else if (op.codeword == "NOT") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk((int)(!top));
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(!tempVal1));
 			replace(op.stack);
 		}
 	} else if (op.codeword == "XOR") {
-		if (getTopTwoLiteral(op.stack, top, secondTop) && checkArguments(op.arguments, 0)) {
-			temp = Disk((int)(!top != !secondTop));
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(!tempVal1 != !tempVal2));
 			replace(op.stack);
 		}
-	} else if (op.codeword == "NEW") {
+
+	} else if (op.codeword == "CMEQ") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 == tempVal2));
+		}
+	} else if (op.codeword == "CMGT") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			// Note that tempVal2 COMES BEFORE tempVal1
+			temp = Disk((int)(tempVal1 < tempVal2));
+		}
+	} else if (op.codeword == "CMLT") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 > tempVal2));
+		}
+	} else if (op.codeword == "CMGE") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 <= tempVal2));
+		}
+	} else if (op.codeword == "CMLE") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 >= tempVal2));
+		}
+	} else if (op.codeword == "CMNE") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = Disk((int)(tempVal1 != tempVal2));
+		}
+	} else if (op.codeword == "CMRC") {
+		if (getTopTwoLiteral(op.stack, tempVal1, tempVal2) && checkArguments(op.arguments, 0)) {
+			temp = stacks[op.stack].pop();
+			tempVal1 = (temp == stacks[op.stack].top());
+			stacks[op.stack].push(temp);
+			temp = Disk(tempVal1);
+			stacks[op.stack].push(temp);
+		}
+	} else if (op.codeword == "LTRL") {
+		if (checkArguments(op.arguments, 0)) {
+			tempVal1 = stacks[op.stack].top().isLiteral();
+			temp = Disk(tempVal1);
+			stacks[op.stack].push(temp);
+		}
+	} else if (op.codeword == "NEW") { // Disk manipulation
 		if (checkArguments(op.arguments, 1)) {
 			temp = Disk();
 			switch (op.arguments[0][0]) {
@@ -165,13 +205,13 @@ void StacVirt::executeLine(string &line) {
 					temp.setValueChar(op.arguments[0].substr(1)[0]); // If it aint broke dont fix it
 					break;
 				case '=':
-					top = stoi(op.arguments[0].substr(1));
-					if (top != 0 && top != 1) {
-						cout << "ERROR: Booleans can only be =1 or =0, got =" << top << " instead" << endl;
+					tempVal1 = stoi(op.arguments[0].substr(1));
+					if (tempVal1 != 0 && tempVal1 != 1) {
+						cout << "ERROR: Booleans can only be =1 or =0, got =" << tempVal1 << " instead" << endl;
 						stop = true;
 						break;
 					}
-					temp.setValueChar(top);
+					temp.setValueChar(tempVal1);
 					break;
 				default:
 					cout << "ERROR: Value must begin with # (int), . (double), ' (char), = (bool).";
@@ -179,15 +219,30 @@ void StacVirt::executeLine(string &line) {
 			}
 			stacks[op.stack].push(temp);
 		}
+	} else if (op.codeword == "NEWN") {
+		if (checkArguments(op.arguments, 1)) {
+			temp = Disk(0, false);
+			stacks[op.stack].push(temp);
+		}
+	} else if (op.codeword == "IPUT") {
+		if (checkArguments(op.arguments, 0)) {
+			cin >> tempVal1;
+			temp = Disk(tempVal1);
+			stacks[op.stack].push(temp);
+		}
 	} else if (op.codeword == "OPUT") {
 		if (checkArguments(op.arguments, 0)) {
 			if (isTopLiteral(op.stack)) {
-				temp = stacks[op.stack].pop();
-				cout << temp.getValue() << endl;
+				cout << stacks[op.stack].pop().getValue() << endl;
 			}
 		}
 	} else {
 		cout << "Debug: wtf happened" << endl;
+	}
+
+	if (stop) { // If error caught when executing
+		cout << "On line " << lineNum << endl;
+		return;
 	}
 	lineNum++;
 }
