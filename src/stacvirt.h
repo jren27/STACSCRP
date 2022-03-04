@@ -20,6 +20,8 @@ class StacVirt {
 		Disk grabbedDisk, temp;
 		unsigned int lineNum;
 		bool stop;
+		vector<Operation> storedOps;
+
 		Operation parseToOperation(vector<string> arguments);
 		bool checkArguments(vector<string> arguments, int argCount);
 		bool isTopLiteral(int stack);
@@ -28,8 +30,10 @@ class StacVirt {
 
 	public:
 		StacVirt();
+		void appendLine(string &line);
 		bool isStopped() { return stop; }
-		void executeLine(string &line);
+		unsigned int getLine() { return lineNum; }
+		void executeLine();
 };
 
 #endif

@@ -62,12 +62,11 @@ void StacVirt::replace(int stack) { // Replace top of stack with temp
 
 StacVirt::StacVirt() {
 	stacks = new DiskStack[8];
-	lineNum = 0;
+	lineNum = 1;
 	stop = false;
 }
 
-
-void StacVirt::executeLine(string &line) {
+void StacVirt::appendLine(string &line) {
 	//Parse line
 	stringstream linestream;
 	linestream.str(line);
@@ -86,10 +85,18 @@ void StacVirt::executeLine(string &line) {
 	
 	Operation op = parseToOperation(arguments);
 	if (stop) {
-		cout << "On line " << lineNum << endl;
+		cout << "On line " << storedOps.size() + 1 << endl;
 		return;
 	}
-	//--- ACTUAL EXECUTION LOGIC ---
+	storedOps.push_back(op);
+}
+
+void StacVirt::executeLine() {
+	if (lineNum > storedOps.size()) {
+		stop = true;
+		return;
+	}
+	Operation op = storedOps[lineNum - 1];
 	double tempVal1, tempVal2;
 	//TODO finish this bigass if statement
 	if (op.codeword == "POP") { // Stack manipulation
@@ -104,7 +111,7 @@ void StacVirt::executeLine(string &line) {
 	} else if (op.codeword == "SWAP") {
 		if (checkArguments(op.arguments, 0))
 			stacks[op.stack].swap();
-	} else if (op.codeword == "PEEL") { // wtf	
+	} else if (op.codeword == "PEEL") {
 		if (checkArguments(op.arguments, 0)) {
 			temp = stacks[op.stack].top().getStack()->pop();
 			stacks[op.stack].push(temp);
@@ -224,7 +231,7 @@ void StacVirt::executeLine(string &line) {
 			temp = Disk(0, false);
 			stacks[op.stack].push(temp);
 		}
-	} else if (op.codeword == "IPUT") {
+	} else if (op.codeword == "IPUT") { // IO
 		if (checkArguments(op.arguments, 0)) {
 			cin >> tempVal1;
 			temp = Disk(tempVal1);
@@ -234,6 +241,31 @@ void StacVirt::executeLine(string &line) {
 		if (checkArguments(op.arguments, 0)) {
 			if (isTopLiteral(op.stack)) {
 				cout << stacks[op.stack].pop().getValue() << endl;
+			}
+		}
+	} else if (op.codeword == "MARK") {
+		if (checkArguments(op.arguments, 0)) {
+			temp = Disk(lineNum);
+			stacks[op.stack].push(temp);
+		}
+	} else if (op.codeword == "JUMP") {
+		if (checkArguments(op.arguments, 0)) {
+			if ((int)stacks[op.stack].top().getValue() != stacks[op.stack].top().getValue()) {
+				cout << "ERROR: Line must be an integer, got " << stacks[op.stack].top().getValue() << "instead" << endl;
+			} else if (stacks[op.stack].top().getValue() < 1) {
+				cout << "ERROR: Line number cannot be less than 1, got " << stacks[op.stack].top().getValue() << "instead" << endl;
+			} else {
+				lineNum = stacks[op.stack].top().getValue(); // TODO throw error if out of bounds
+			}
+		}	
+	} else if (op.codeword == "JCON") {
+		if (checkArguments(op.arguments, 0)) {
+			if ((int)stacks[op.stack].top().getValue() != stacks[op.stack].top().getValue()) {
+				cout << "ERROR: Line must be an integer, got " << stacks[op.stack].top().getValue() << "instead" << endl;
+			} else if (stacks[op.stack].top().getValue() < 1) {
+				cout << "ERROR: Line number cannot be less than 1, got " << stacks[op.stack].top().getValue() << "instead" << endl;
+			} else if (grabbedDisk.getValue() != 0) {
+				lineNum = stacks[op.stack].top().getValue(); // TODO throw error if out of bounds
 			}
 		}
 	} else {

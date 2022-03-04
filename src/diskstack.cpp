@@ -38,7 +38,7 @@ void DiskStack::push(Disk &d) {
 
 Disk DiskStack::DiskStack::pop() {
 	if (size == 0) {
-		throw runtime_error("Stack size is 0");
+		throw runtime_error("Pop: stack size is 0");
 	}
 	//stack[size].reset();
 	size--;
@@ -47,14 +47,14 @@ Disk DiskStack::DiskStack::pop() {
 
 Disk DiskStack::top() {
 	if (size == 0) {
-		throw runtime_error("Stack size is 0");
+		throw runtime_error("Top: stack size is 0");
 	}
 	return stack[size-1];
 }
 
 void DiskStack::swap() {
 	if (size == 0) {
-		throw runtime_error("Stack size is 0");
+		throw runtime_error("Swap: stack size is 0");
 	} else if (size == 1) {
 		return; //Just keep the stack the same
 	}
