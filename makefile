@@ -1,7 +1,7 @@
 build:
 	clear
 	rm -f stacscrp
-	g++ -g -Wall stacscrp.cpp src/* -o stacscrp
+	gcc -g -Wall src/stacscrp.c src/diskstack.* src/instruction.* -o stacscrp
 
 run:
 	./stacscrp
@@ -9,13 +9,21 @@ run:
 buildtestbench:
 	clear
 	rm -f testbench
-	g++ -g -Wall testbench.cpp src/* -o testbench -lgtest_main -lgtest -lpthread
+	gcc -g -Wall testbench.c src/diskstack.* src/instruction.* -o testbench
 
 runtestbench:
 	./testbench
+
+buildassembler:
+	clear
+	rm -f assembler
+	gcc -g -Wall assembler.c -o assembler
 
 valgrind:
 	valgrind --tool=memcheck --leak-check=yes ./stacscrp
 
 valgrindtestbench:
 	valgrind --tool=memcheck --leak-check=yes ./testbench
+
+clean:
+	rm -f stacscrp testbench assembler
