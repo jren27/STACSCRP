@@ -1,0 +1,69 @@
+#include "instruction.h"
+
+operation toOperation(unsigned short o) {
+	switch (o) {
+		case 0:
+			return POP;
+		case 1:
+			return TOP;
+		case 2:
+			return PUSH;
+		case 3:
+			return SWAP;
+		case 4:
+			return DROP;
+		case 5:
+			return GRAB;
+		case 6:
+			return ADD;
+		case 7:
+			return SUB;
+		case 8:
+			return MUL;
+		case 9:
+			return DIV;
+		case 10:
+			return AND;
+		case 11:
+			return LOR;
+		case 12:
+			return NOT;
+		case 13:
+			return XOR;
+		case 14:
+			return CMEQ;
+		case 15:
+			return CMGT;
+		case 16:
+			return CMLT;
+		case 17:
+			return CMGE;
+		case 18:
+			return CMLE;
+		case 19:
+			return CMNE;
+		case 20:
+			return NEW;
+		case 21:
+			return NEWN;
+		case 22:
+			return WIPE;
+		case 23:
+			return LTRL;
+		case 24:
+			return TYPE;
+		case 25:
+			return RTYP;
+		case 26:
+			return IPUT;
+		case 27:
+			return OPUT;
+		case 28:
+			return MARK;
+		case 29:
+			return JUMP;
+		case 30:
+			return JCON;
+	}
+	return HALT;
+}

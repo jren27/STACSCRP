@@ -36,6 +36,9 @@ void freeStack(stack* s);
 void push(stack* s, disk* d);
 int pop(stack* s);
 int top(stack* s, disk* d);
+int swap(stack* s);
+int drop(stack* s); // TODO write these (in .c file)
+int grab(stack* s);
 
 // --- DISK FUNCTIONS ---
 void initDisk(disk* d, bool isLiteral);
