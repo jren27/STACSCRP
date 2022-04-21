@@ -19,6 +19,11 @@ buildassembler:
 	rm -f assembler
 	gcc -g -Wall assembler.c -o assembler
 
+buildsimpleassembler:
+	clear
+	rm -f testassembler
+	gcc -g -Wall simpleassembler.c -o simpleassembler
+
 valgrind:
 	valgrind --tool=memcheck --leak-check=yes ./stacscrp
 
@@ -26,4 +31,4 @@ valgrindtestbench:
 	valgrind --tool=memcheck --leak-check=yes ./testbench
 
 clean:
-	rm -f stacscrp testbench assembler
+	rm -f stacscrp testbench assembler simpleassembler
