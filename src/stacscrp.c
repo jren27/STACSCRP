@@ -45,29 +45,36 @@ instruction* loadAssembly(FILE* f, unsigned int* lineNumMax) {
 }
 
 int execute(instruction* instructions, unsigned int* lineNum, unsigned int* lineNumMax, stack* stacks, disk* grabbedDisk) {
+	unsigned short inststack = instructions[*lineNum].stack;
 	switch (instructions[*lineNum].op) {
 		case POP:
-			if (top(&stacks[instructions[*lineNum].stack], grabbedDisk)) {
-				printf("RUNTIME ERROR on line %ls: Attempted to POP stack %d, but has size 0\n", lineNum, instructions[*lineNum].stack);
+			if (top(&stacks[inststack], grabbedDisk)) {
+				printf("RUNTIME ERROR on line %ls: Attempted to POP stack %d, but has size 0\n", lineNum, inststack);
 				return 1;
 			}
-			pop(&stacks[instructions[*lineNum].stack]);
-			break;
+			pop(&stacks[inststack]);
+			return 0;
 		case TOP:
-			if (top(&stacks[instructions[*lineNum].stack], grabbedDisk)) {
-				printf("RUNTIME ERROR on line %ls: Attempted to TOP stack %d, but has size 0\n", lineNum, instructions[*lineNum].stack);
+			if (top(&stacks[inststack], grabbedDisk)) {
+				printf("RUNTIME ERROR on line %ls: Attempted to TOP stack %d, but has size 0\n", lineNum, inststack);
 				return 1;
 			}
-			break;
+			return 0;
 		case PUSH:
-			push(&stacks[instructions[*lineNum].stack], grabbedDisk);
-			break;
+			push(&stacks[inststack], grabbedDisk);
+			return 0;
 		case SWAP:
-
+			if (swap(&stacks[inststack])) {
+				printf("RUNTIME ERROR on line %ls: Attempted to SWAP stack %d, but has size 0\n", lineNum, inststack);
+				return 1;
+			}
+			return 0;
+		case DROP:
+			
+		case GRAB:
 		default:
-			break;
+			return 0;
 	}
-	return 0;
 }
 
 int main() {

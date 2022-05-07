@@ -22,7 +22,7 @@ buildassembler:
 buildsimpleassembler:
 	clear
 	rm -f testassembler
-	gcc -g -Wall simpleassembler.c -o simpleassembler
+	gcc -g -Wall simpleassembler.c src/instruction.* -o simpleassembler
 
 valgrind:
 	valgrind --tool=memcheck --leak-check=yes ./stacscrp

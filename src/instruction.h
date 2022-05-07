@@ -1,25 +1,23 @@
 #ifndef INSTRUCTION
 #define INSTRUCTION
 
-#define HALT_OP 0x00
-#define STAC_OP 0x01
-#define  NEW_OP 0x02
-#define ARTH_OP 0x03
-#define COMP_OP 0x04
-#define LTRL_OP 0x05
-#define TYPE_OP 0x06
-#define RTYP_OP 0x07
-#define IPUT_OP 0x08
-#define OPUT_OP 0x09
-#define GOTO_OP 0x0A
-#define JUMP_OP 0x0B
+#include "diskstack.h"
 
-#define  POP_ST 0x00
-#define PEEK_ST 0x10
-#define PUSH_ST 0x20
-#define SWAP_ST 0x30
-#define GRAB_ST 0x40
-#define DROP_ST 0x50
+#define POP_OP  0x00
+#define TOP_OP  0x01
+#define PUSH_OP 0x02
+#define SWAP_OP 0x03
+#define DROP_OP 0x04
+#define ARTH_OP 0x05
+#define COMP_OP 0x06
+#define LTRL_OP 0x07
+#define TYPE_OP 0x08
+#define RTYP_OP 0x09
+#define IPUT_OP 0x0A
+#define OPUT_OP 0x0B
+#define GOTO_OP 0x0C
+#define JUMP_OP 0x0D
+#define EXEC_OP 0xFF
 
 #define NULL_TP 0x00
 #define  INT_TP 0x10
@@ -42,6 +40,31 @@
 #define LT 0x40
 #define GE 0x50
 
-#define COND_BR 0x01
+#define COND_BR 0x10
+
+
+typedef struct line {
+	char buff[80]; // Sorta picked this size based on google formatting
+	struct line* next;
+	struct line* prev;
+} line;
+
+typedef struct instruction {
+	disk d;
+	struct instruction* next;
+	struct instruction* prev;
+} instruction;
+
+typedef struct {
+	line* head;
+	line* tail;
+} linelist;
+
+typedef struct {
+	instruction* head;
+	instruction* tail;
+} instructionlist;
+
+void pushLine(linelist* list, char* buffer);
 
 #endif

@@ -1,47 +1,36 @@
 // diskstack.h
 // Contains struct and function declarations for stack and disk
-// Also contains datatype, an enum for the type of data a disk is storing and relevant functions
 
 #ifndef DISK_STACK
 #define DISK_STACK
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
-struct disk;
-
-typedef enum datatype {
-	NONLIT, INT, CHAR, BOOL, DOUBLE
-} datatype;
+typedef struct disk {
+	uint8_t type; // Stores binary data from stacstrm
+	int intvalue; // Can also store bool and char values
+	double doublevalue;
+	bool isInstruction;
+	unsigned short instruction;
+} disk;
 
 typedef struct stack {
-	struct disk** contents;
+	disk* contents;
 	unsigned int size;
 	unsigned int capacity;
 } stack;
 
-typedef struct disk {
-	datatype type;
-	int intvalue; // Can also store bool and char values
-	double doublevalue;
-	stack internalstack;
-	bool literal;
-} disk;
-
-// --- DATATYPE FUNCTIONS ---
-datatype convertToType(unsigned short i);
-char convertToChar(datatype t);
-
 // --- STACK FUNCTIONS ---
 void initStack(stack* s);
 void freeStack(stack* s);
-void push(stack* s, disk* d);
+void push(stack* s, disk d);
 int pop(stack* s);
 int top(stack* s, disk* d);
 int swap(stack* s);
-int drop(stack* s); // TODO write these (in .c file)
-int grab(stack* s);
 
 // --- DISK FUNCTIONS ---
-void initDisk(disk* d, bool isLiteral);
-void freeDisk(disk* d);
+void initDisk(disk* d);
+void loadInstruction(disk* d, FILE* stream);
 
 #endif
