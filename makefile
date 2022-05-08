@@ -17,7 +17,7 @@ runtestbench:
 buildassembler:
 	clear
 	rm -f assembler
-	gcc -g -Wall assembler.c -o assembler
+	gcc -g -Wall assembler.c src/diskstack.* src/instruction.* -o assembler
 
 buildsimpleassembler:
 	clear
@@ -26,6 +26,9 @@ buildsimpleassembler:
 
 valgrind:
 	valgrind --tool=memcheck --leak-check=yes ./stacscrp
+
+valgrindassembler:
+	valgrind --tool=memcheck --leak-check=yes ./assembler
 
 valgrindtestbench:
 	valgrind --tool=memcheck --leak-check=yes ./testbench

@@ -66,5 +66,6 @@ typedef struct {
 } instructionlist;
 
 void pushLine(linelist* list, char* buffer);
+void removeLine(linelist* list, line* l);
 
 #endif
