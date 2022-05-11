@@ -6,57 +6,112 @@
 #include <strings.h> // strcasecmp
 #include <stdbool.h>
 #include <ctype.h>
+#include "src/diskstack.h"
 #include "src/instruction.h"
 
-void readToWhitespace(char* buff, int n, FILE* file) {
+
+// --- PASS 1 ---
+// Remove comments, whitespace, and converts everything to instructions
+
+// Copies next instruction section (ignoring whitespace) to buffer
+// Newline is considered a section, indicates no other sections in line
+// Also ignores comments
+// Returns if EOF is reached
+int readNextSection(char* buff, int n, FILE* file) {
 	int copyIndex = 0;
-	bool beginCopy = false;
 	int temp = 0;
+	bool isComment = false;
 	while (copyIndex < n) {
 		temp = fgetc(file);
 		if (temp == EOF) {
-			return;
+			return 1;
 		}
-		// This could look a bit nicer
-		if (temp == ' ' || temp == '\t' || temp == '\n') {
-			if (beginCopy) {
+		if (temp == '\n') { // Handle newline
+			if (copyIndex == 0) {
+				buff[0] = '\n';
+				buff[1] = '\0';
+			} else {
 				buff[copyIndex] = '\0';
-				printf("%s ", buff); // TODO DELETE THIS WHEN FULL ASSEMBLER COMPLETE
-				return;
+				fseek(file, -1L, SEEK_CUR);
 			}
-		} else {
-			if (!beginCopy) {
-				beginCopy = true;
-			}
-			buff[copyIndex] = temp;
-			copyIndex++;
+			return 0;
 		}
+		if (temp == ' ' || temp == '\t') {
+			break;
+		}
+		if (temp == ';') {
+			buff[copyIndex++] = '\n';
+			isComment = true;
+			break;
+		}
+		buff[copyIndex++] = temp;
 	}
 	buff[copyIndex] = '\0';
-}
-
-// This assumes that list is empty
-void storeLines(linelist* list, FILE* in) {
-	list->head = NULL;
-	list->tail = NULL;
-	char buffer[80];
-	while (!feof(in)) {
-		fgets(buffer, 80, in);
-		pushLine(list, buffer);
+	// Dump all whitespace before next section or newline
+	while (temp != '\n') {	
+		temp = fgetc(file);
+		if (temp == EOF) {
+			return 1;
+		}
+		if (!isComment && temp != ' ' && temp != '\t') {
+			break;
+		}
 	}
+	fseek(file, -1L, SEEK_CUR); // Rewind by 1, next char to be read will be the start of the next section
+	return 0;
 }
 
-void parseFile(FILE* in, FILE* out, instruction nextInstruction) {
-	char buffer[50] = "";
-	unsigned short stack, op, argtype = NULL_TP;
-	unsigned long arg;
-	printf("\n------\n");
-	// Read stack
-	readToWhitespace(buffer, 50, in);
-	stack = buffer[0] - '0';
+// This doesn't exactly go to the next line lol, more like the next instruction on the next line
+int nextLine(FILE* file) {
+	int temp = ' ';
+	while (isspace(temp)) {
+		temp = fgetc(file);
+		if (temp == EOF) {
+			return 1;
+		}
+	}
+	fseek(file, -1L, SEEK_CUR);
+	return 0;
+}
 
+// Returns 1 if parsing ever stops (EOF or error), 0 if not
+int parseLine(FILE* in, instructionlist* list) {
+	char buffer[50] = "";
+	unsigned short stack, op;
+	instruction* inst = malloc(sizeof(instruction));
+	inst->d.type = NULL_TP;
+	// Read first line
+	if (readNextSection(buffer, 50, in)) {
+		return 1;
+	}
+
+	if (buffer[0] == ';' || buffer[0] == '\n') { // Check if line is commented or whitespace
+		return 0;
+	}
+	if (strlen(buffer) == 1) {
+		stack = buffer[0] - '0';
+		if (stack < 0 || stack > 7) {
+			printf("ASSEMBLY ERROR: Invalid stack\n");
+			return 1;
+		}	
+		if (readNextSection(buffer, 50, in)) {
+			printf("ASSEMBLY ERROR: Early EOF reached\n");
+			return 1;
+		}
+	} else { // Handle stack "carryover"
+		if (list->tail != NULL) {
+			stack = list->tail->d.instruction >> 8; // Is this the right way to do this?
+		} else { // Default is 0
+			stack = 0;
+		}
+	}
+	
 	// Read instruction
-	readToWhitespace(buffer, 50, in);
+	
+	if (buffer[0] == '\n') {
+		printf("ASSEMBLY ERROR: Instruction not found\n");
+	}
+
 	if (!strcasecmp(buffer, "EXEC")) {
 		op = EXEC_OP;
 		// --- STACK OPERATIONS ---
@@ -64,17 +119,26 @@ void parseFile(FILE* in, FILE* out, instruction nextInstruction) {
 		op = POP_OP;
 	} else if (!strcasecmp(buffer, "PUSH")) {
 		op = PUSH_OP;
-		readToWhitespace(buffer, 50, in);
-		if (!strcasecmp(buffer, "#")) {
-			op |= INT_TP;
-			fscanf(in, "%d", arg);
-		} else if (!strcasecmp(buffer, "\'")) {
-			op |= CHAR_TP;
-			fscanf(in, "%c", &arg);
-		} else if (!strcasecmp(buffer, ".")) {
-			op |= DOUB_TP;
-			fscanf(in, "%lf", &arg);
+		if (readNextSection(buffer, 50, in)) {
+			printf("ASSEMBLY ERROR: Early EOF reached\n");
+			return 1;
 		}
+		if (buffer[0] == '\n') {
+			printf("ASSEMBLY ERROR: Argument not given\n");
+		}
+		if (!strcasecmp(buffer, "#")) {
+			inst->d.type = INT_TP;
+			fscanf(in, "%d", &inst->d.intvalue);
+		} else if (!strcasecmp(buffer, "\'")) {
+			inst->d.type = CHAR_TP;
+			fscanf(in, "%c", &inst->d.intvalue);
+		} else if (!strcasecmp(buffer, ".")) {
+			inst->d.type = DOUB_TP;
+			fscanf(in, "%lf", &inst->d.doublevalue);
+		} else {
+			printf("ASSEMBLY ERROR: Invalid argument type\n");
+		}
+		op |= inst->d.type;
 	} else if (!strcasecmp(buffer, "SWAP")) {
 		op = SWAP_OP;
 	} else if (!strcasecmp(buffer, "DROP")) {
@@ -90,7 +154,7 @@ void parseFile(FILE* in, FILE* out, instruction nextInstruction) {
 	} else if (!strcasecmp(buffer, "AND")) {
 		op = ARTH_OP | AND_AL;
 	} else if (!strcasecmp(buffer, "LOR")) {
-		op = ARTH_OP | LOR_AL;	
+		op = ARTH_OP | LOR_AL;
 	} else if (!strcasecmp(buffer, "NOT")) {
 		op = ARTH_OP | NOT_AL;
 	} else if (!strcasecmp(buffer, "XOR")) {
@@ -112,7 +176,7 @@ void parseFile(FILE* in, FILE* out, instruction nextInstruction) {
 		op = LTRL_OP;
 	} else if (!strcasecmp(buffer, "TYPE")) {
 		op = TYPE_OP;
-	} else if (!strcasecmp(buffer, "RTYP")) {
+	} else if (!strcasecmp(buffer, "RTYP")) { // TODO add argument handling for this later
 		op = RTYP_OP;
 	} else if (!strcasecmp(buffer, "IPUT")) {
 		op = IPUT_OP;
@@ -126,87 +190,46 @@ void parseFile(FILE* in, FILE* out, instruction nextInstruction) {
 		op = JUMP_OP;
 	} else if (!strcasecmp(buffer, "JPIF")) {
 		op = JUMP_OP | COND_BR;
+	} else {
+		printf("ASSEMBLY ERROR: Invalid instruction\n");
+		return 1;
 	}
+	inst->d.instruction = stack << 8 | op;
+	pushInstruction(list, inst);
+	nextLine(in);
+	return 0;
 }
 
-// --- PASS 1 ---
-// Remove comments, whitespace
-
-// Returns true if line is only whitespace
-bool _isWhitespace(char* line) {
-	for (int i = 0; i < strlen(line); i++) {
-		if (!isspace(line[i])) {
-			return false;
+// This assumes that list is empty
+int passOne(instructionlist* list, FILE* in) {
+	list->head = NULL;
+	list->tail = NULL;
+	while (!feof(in)) {
+		if (parseLine(in, list)) {
+			return 1;
 		}
-	}
-	return true;
-}
-
-// Truncates line to remove any trailing whitespaces and comments
-void _removeComment(char* line) {
-	char* end = &line[0];
-	for (int i = 0; i < strlen(line); i++) {
-		if (line[i] == ';') {
-			break;
-		}
-		if (!isspace(line[i])) {
-			end = &line[i+1];
-		}
-	}
-	*end = '\0';
-}
-
-void PassOne(linelist* list) {
-	line* currline = list->head;
-	while (currline != NULL) {
-		// Including second line because commenting out stuff is pretty common
-		if (_isWhitespace(currline->buff) || currline->buff[0] == ';') {
-			removeLine(list, currline);
-		} else {
-			_removeComment(currline->buff);
-		}
-		currline = currline->next;
-	}
-	// There's an extra last line here, get rid of it!
-	if (list->tail != NULL) {
-		list->tail = list->tail->prev;
-		free(list->tail->next);
-		list->tail->next = NULL;
-	}
-}
-
-// --- PASS 2 ---
-// Parse everything into instructions
-
-// Returns 0 if no errors, 1 if error occurs
-// Assumes instlist is empty
-int PassTwo(linelist* list, instructionlist* instlist) {
-	line* currline = list->head;
-	while (currline != NULL) {
-		
 	}
 	return 0;
 }
 
 int main() { // TODO use command line arguments
-	FILE* in = fopen("test.stacscrp", "r");
+	FILE* in = fopen("test.stacscrp", "rb");
 	//FILE* out = fopen("out.bin", "w+");
-	linelist list;
-	storeLines(&list, in);
-	line* currline = list.head;
-	while (currline != NULL) {
-		printf("%s", currline->buff);
-		currline = currline->next;
-	}
-	PassOne(&list);
-	printf("--- PASS ONE ---\n");
-	currline = list.head;
-	while (currline != NULL) {
-		printf("%s\n", currline->buff);
-		currline = currline->next;
-	}
 	//fputc(-1, out);
+	
+	instructionlist list;
+	passOne(&list, in);
+	
+	// Testing
+	instruction* currinst = list.head;
+	while (currinst != NULL) {
+		printf("%d\n", currinst->d.instruction >> 8);
+		currinst = currinst->next;
+	}
+
+	// Clean up
 	fclose(in);
 	//fclose(out);
+	freeInstructionList(&list);
 	return 0;
 }

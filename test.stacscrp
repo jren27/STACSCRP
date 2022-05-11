@@ -1,0 +1,14 @@
+1	PUSH 	#	10
+2	PUSH	.	20.101
+2	PUSH	#	30
+2	ADD ; OMG this is a test comment!
+
+
+; lmao
+
+
+1	POP
+2	DROP
+2	DIV                      ; I am here to screw things up
+2	OPUT
+7	POP

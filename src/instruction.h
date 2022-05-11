@@ -17,6 +17,7 @@
 #define OPUT_OP 0x0B
 #define GOTO_OP 0x0C
 #define JUMP_OP 0x0D
+#define DEFN_OP 0xFE
 #define EXEC_OP 0xFF
 
 #define NULL_TP 0x00
@@ -65,7 +66,8 @@ typedef struct {
 	instruction* tail;
 } instructionlist;
 
-void pushLine(linelist* list, char* buffer);
-void removeLine(linelist* list, line* l);
+void pushInstruction(instructionlist* list, instruction* inst);
+void removeInstruction(instructionlist* list, instruction* l);
+void freeInstructionList(instructionlist* list);
 
 #endif

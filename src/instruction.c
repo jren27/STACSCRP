@@ -1,44 +1,55 @@
 #include "instruction.h"
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 // Push to the back
-void pushLine(linelist* list, char* buffer) {
-	line* newline = malloc(sizeof(line));
-	strncpy(newline->buff, buffer, 80);
-	newline->next = NULL;
+void pushInstruction(instructionlist* list, instruction* inst) {
+	inst->next = NULL;
 	if (list->head == NULL) {
-		newline->prev = NULL;
-		list->head = newline;
+		inst->prev = NULL;
+		list->head = inst;
 		list->tail = list->head;
 		return;
 	}
-	newline->prev = list->tail;
-	list->tail->next = newline;
+	inst->prev = list->tail;
+	list->tail->next = inst;
 	list->tail = list->tail->next;
 }
 
 // Removes line l from linelist (l MUST BE IN list, BE VERY CAREFUL!)
-void removeLine(linelist* list, line* l) {
-	if (l == NULL) {
+void removeInstruction(instructionlist* list, instruction* inst) {
+	if (inst == NULL) {
 		return;
 	}
-	if (l->next == NULL && l->prev == NULL) {
+	if (inst->next == NULL && inst->prev == NULL) {
 		free(list->head);
 		list->head = list->tail = NULL;
 		return;
 	}
-	if (l->next == NULL) {
+	if (inst->next == NULL) {
 		list->tail = list->tail->prev;
 		free(list->tail);
 		return;
 	}
-	if (l->prev == NULL) {
+	if (inst->prev == NULL) {
 		list->head = list->head->next;
 		free(list->head);
 		return;
 	}
-	l->prev->next = l->next;
-	l->next->prev = l->prev;
-	free(l);
+	inst->prev->next = inst->next;
+	inst->next->prev = inst->prev;
+	free(inst);
 }
+
+void freeInstructionList(instructionlist* list) {
+	instruction* currinst = list->head;
+	instruction* nextinst = currinst;
+	
+	while (currinst != NULL) {
+		nextinst = nextinst->next;
+		free(currinst);
+		currinst = nextinst;
+	}
+}
+
