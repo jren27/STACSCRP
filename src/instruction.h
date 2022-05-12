@@ -17,7 +17,6 @@
 #define OPUT_OP 0x0B
 #define GOTO_OP 0x0C
 #define JUMP_OP 0x0D
-#define DEFN_OP 0xFE
 #define EXEC_OP 0xFF
 
 #define NULL_TP 0x00
@@ -45,13 +44,15 @@
 
 
 typedef struct line {
-	char buff[80]; // Sorta picked this size based on google formatting
+	char* unparsed[4];
+	unsigned int lineNum;
 	struct line* next;
 	struct line* prev;
 } line;
 
 typedef struct instruction {
 	disk d;
+	unsigned int pos;
 	struct instruction* next;
 	struct instruction* prev;
 } instruction;
@@ -65,6 +66,8 @@ typedef struct {
 	instruction* head;
 	instruction* tail;
 } instructionlist;
+
+void pushLine(linelist* list, line* line);
 
 void pushInstruction(instructionlist* list, instruction* inst);
 void removeInstruction(instructionlist* list, instruction* l);

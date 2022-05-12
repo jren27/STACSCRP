@@ -3,6 +3,19 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+void pushLine(linelist* list, line* line) {
+	line->next = NULL;
+	if (list->head == NULL) {
+		line->prev = NULL;
+		list->head = line;
+		list->tail = list->head;
+		return;
+	}
+	line->prev = list->tail;
+	list->tail->next = line;
+	list->tail = list->tail->next;
+}
+
 // Push to the back
 void pushInstruction(instructionlist* list, instruction* inst) {
 	inst->next = NULL;

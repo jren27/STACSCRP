@@ -1,7 +1,7 @@
-1	PUSH 	#	10
-2	PUSH	.	20.101
-2	PUSH	#	30
-2	ADD ; OMG this is a test comment!
+1	PUSH 	#10
+2	PUSH	.20.101
+	PUSH	#30
+	ADD ; OMG this is a test comment!
 
 
 ; lmao

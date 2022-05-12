@@ -10,8 +10,8 @@
 #include "src/instruction.h"
 
 
-// --- PASS 1 ---
-// Remove comments, whitespace, and converts everything to instructions
+// --- PREPASS ---
+// Store program in line struct for further processing
 
 // Copies next instruction section (ignoring whitespace) to buffer
 // Newline is considered a section, indicates no other sections in line
@@ -71,6 +71,37 @@ int nextLine(FILE* file) {
 		}
 	}
 	fseek(file, -1L, SEEK_CUR);
+	return 0;
+}
+
+// This assumes that list is empty
+int prePass(linelist* list, FILE* in) {
+	list->head = NULL;
+	list->tail = NULL;
+	unsigned int lineNum = 1;
+	while (!feof(in)) {
+		printf("line %d: ", lineNum);
+		line* templine = malloc(sizeof(line));
+		for (int i = 0; i < 5; i++) {
+		templine->unparsed[i] = malloc(sizeof(char) * 20);
+			if (readNextSection(templine->unparsed[i], 20, in)) {
+				return 1;
+			}
+			if (!strcmp(templine->unparsed[i], "\n")) {
+				printf("END\n");
+				break;
+			}
+			printf("%s ", templine->unparsed[i]);
+			// Only happens if newline is never reached
+			if (i == 5) {
+				printf("ASSEMBLY ERROR: More arguments than expected found\n");
+				return 1;
+			}
+		}
+		nextLine(in);
+		templine->lineNum = lineNum++;
+		pushLine(list, templine);
+	}
 	return 0;
 }
 
@@ -195,41 +226,34 @@ int parseLine(FILE* in, instructionlist* list) {
 		return 1;
 	}
 	inst->d.instruction = stack << 8 | op;
+	// Handle instruction position
+	inst->pos = (list->head == NULL) ? 1 : list->tail->pos + 1;
 	pushInstruction(list, inst);
 	nextLine(in);
 	return 0;
 }
 
-// This assumes that list is empty
-int passOne(instructionlist* list, FILE* in) {
-	list->head = NULL;
-	list->tail = NULL;
-	while (!feof(in)) {
-		if (parseLine(in, list)) {
-			return 1;
-		}
-	}
-	return 0;
-}
+// --- PASS 1 ---
+// - Handle DEFN replacements
+// - Remove empty lines
+// - Remove excess EXEC statements
+
+// --- PASSES 2-4 ---
+// Pass 2: Store all MARK locations, delete from linelist
+// Pass 3: Parse all lines to instructions
+// Pass 4: Rework all JUMPS and GOTOS to use instruction positions instead of MARKS
 
 int main() { // TODO use command line arguments
 	FILE* in = fopen("test.stacscrp", "rb");
 	//FILE* out = fopen("out.bin", "w+");
 	//fputc(-1, out);
 	
-	instructionlist list;
+	linelist list;
 	passOne(&list, in);
-	
-	// Testing
-	instruction* currinst = list.head;
-	while (currinst != NULL) {
-		printf("%d\n", currinst->d.instruction >> 8);
-		currinst = currinst->next;
-	}
 
 	// Clean up
 	fclose(in);
 	//fclose(out);
-	freeInstructionList(&list);
+	//freeInstructionList(&list);
 	return 0;
 }
