@@ -17,7 +17,7 @@ runtestbench:
 buildassembler:
 	clear
 	rm -f assembler
-	gcc -g -Wall assembler.c src/diskstack.* src/instruction.* -o assembler
+	gcc -g -Wall assembler.c src/diskstack.* src/instruction.* src/map.* -o assembler
 
 buildsimpleassembler:
 	clear

@@ -67,7 +67,8 @@ typedef struct {
 	instruction* tail;
 } instructionlist;
 
-void pushLine(linelist* list, line* line);
+void pushLine(linelist* list, line* line, bool front);
+line* removeLine(linelist* list, line* l);
 
 void pushInstruction(instructionlist* list, instruction* inst);
 void removeInstruction(instructionlist* list, instruction* l);

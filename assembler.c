@@ -8,7 +8,7 @@
 #include <ctype.h>
 #include "src/diskstack.h"
 #include "src/instruction.h"
-
+#include "src/map.h"
 
 // --- PREPASS ---
 // Store program in line struct for further processing
@@ -79,6 +79,7 @@ int prePass(linelist* list, FILE* in) {
 	list->head = NULL;
 	list->tail = NULL;
 	unsigned int lineNum = 1;
+	nextLine(in); // Prep in case file starts with empty space
 	while (!feof(in)) {
 		printf("line %d: ", lineNum);
 		line* templine = malloc(sizeof(line));
@@ -100,11 +101,13 @@ int prePass(linelist* list, FILE* in) {
 		}
 		nextLine(in);
 		templine->lineNum = lineNum++;
-		pushLine(list, templine);
+		pushLine(list, templine, false);
 	}
 	return 0;
 }
 
+
+/* IMPLEMENT THIS IN LATER PASSES
 // Returns 1 if parsing ever stops (EOF or error), 0 if not
 int parseLine(FILE* in, instructionlist* list) {
 	char buffer[50] = "";
@@ -231,12 +234,60 @@ int parseLine(FILE* in, instructionlist* list) {
 	pushInstruction(list, inst);
 	nextLine(in);
 	return 0;
-}
+} */
 
 // --- PASS 1 ---
 // - Handle DEFN replacements
 // - Remove empty lines
 // - Remove excess EXEC statements
+
+int pass1(linelist* list) {
+	line* currline = list->head;
+	treenode* defntree = NULL; // Use to replace any values
+	char defnbuff[50];
+	bool firstexec;
+	while (currline != NULL) {
+		if (!strcasecmp(currline->unparsed[0], "DEFN")) {
+			char keyword[50] = "@";
+			strncat(keyword, currline->unparsed[1], 50);
+			defntree = insertNode(defntree, keyword, currline->unparsed[2]);
+			currline = removeLine(list, currline);
+		}
+		if (currline->unparsed[0][0] == '\n') {
+			currline = removeLine(list, currline);
+		}
+		if (!strcasecmp(currline->unparsed[0], "EXEC")) {
+			if (firstexec) {
+				currline = removeLine(list, currline);
+			} else {
+				firstexec = true;
+			}
+		}
+	
+		// Replace using DEFN tree
+		for (int i = 0; i < 4; i++) {
+			if (currline->unparsed[i][0] == '\n') {
+				break;
+			}
+			if (!getNode(defntree, currline->unparsed[i], defnbuff)) {
+				strcpy(currline->unparsed[i], defnbuff);
+			}
+		}
+
+		currline = currline->next;
+
+	}
+	if (!firstexec) {
+		printf("NOTE: EXEC instruction not found, automatically adding to beginning of program\n");
+		currline = malloc(sizeof(line));
+		currline->unparsed[0] = malloc(sizeof(char) * 10);
+		currline->unparsed[1] = malloc(sizeof(char) * 10);
+		strcpy(currline->unparsed[0], "EXEC");
+		strcpy(currline->unparsed[1], "\n");
+		pushLine(list, currline, true);
+	}
+	return 0;
+}
 
 // --- PASSES 2-4 ---
 // Pass 2: Store all MARK locations, delete from linelist
@@ -249,7 +300,24 @@ int main() { // TODO use command line arguments
 	//fputc(-1, out);
 	
 	linelist list;
-	passOne(&list, in);
+	if (prePass(&list, in)) {
+		return 1;
+	}
+	pass1(&list);
+	
+	// Test
+	printf("\nPASS 1:\n");
+	line* currline = list.head;
+	while (currline != NULL) {
+		for (int i = 0; i < 4; i++) {
+			if (currline->unparsed[i][0] == '\n') {
+				printf("END\n");
+				break;
+			}
+			printf("%s ", currline->unparsed[i]);
+		}
+		currline = currline->next;
+	}
 
 	// Clean up
 	fclose(in);

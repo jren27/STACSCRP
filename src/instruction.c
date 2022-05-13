@@ -3,17 +3,52 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-void pushLine(linelist* list, line* line) {
+void pushLine(linelist* list, line* line, bool front) {
 	line->next = NULL;
+	line->prev = NULL;
 	if (list->head == NULL) {
 		line->prev = NULL;
 		list->head = line;
 		list->tail = list->head;
 		return;
 	}
+	if (front) {
+		line->next = list->head;
+		list->head->prev = line;
+		list->head = list->head->prev;
+		return;
+	}
 	line->prev = list->tail;
 	list->tail->next = line;
 	list->tail = list->tail->next;
+}
+
+// Removes line l from linelist (l MUST BE IN list, BE VERY CAREFUL!)
+// Returns previous line to make traversal easier
+line* removeLine(linelist* list, line* l) {
+	if (l == NULL) {
+		return NULL;
+	}
+	if (l->next == NULL && l->prev == NULL) {
+		free(list->head);
+		list->head = list->tail = NULL;
+		return NULL;
+	}
+	if (l->next == NULL) {
+		list->tail = list->tail->prev;
+		free(list->tail->next);
+		return list->tail;
+	}
+	if (l->prev == NULL) {
+		list->head = list->head->next;
+		free(list->head->prev);
+		return list->head;
+	}
+	line* temp = l->prev;
+	temp->next = l->next;
+	l->next->prev = temp;
+	free(l);
+	return temp;
 }
 
 // Push to the back
