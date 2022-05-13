@@ -37,11 +37,13 @@ line* removeLine(linelist* list, line* l) {
 	if (l->next == NULL) {
 		list->tail = list->tail->prev;
 		free(list->tail->next);
+		list->tail->next = NULL;
 		return list->tail;
 	}
 	if (l->prev == NULL) {
 		list->head = list->head->next;
 		free(list->head->prev);
+		list->head->prev = NULL;
 		return list->head;
 	}
 	line* temp = l->prev;

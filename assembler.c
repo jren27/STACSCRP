@@ -252,13 +252,16 @@ int pass1(linelist* list) {
 			strncat(keyword, currline->unparsed[1], 50);
 			defntree = insertNode(defntree, keyword, currline->unparsed[2]);
 			currline = removeLine(list, currline);
+			continue;
 		}
 		if (currline->unparsed[0][0] == '\n') {
 			currline = removeLine(list, currline);
+			continue;
 		}
 		if (!strcasecmp(currline->unparsed[0], "EXEC")) {
 			if (firstexec) {
 				currline = removeLine(list, currline);
+				continue;
 			} else {
 				firstexec = true;
 			}
