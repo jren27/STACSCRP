@@ -83,8 +83,10 @@ int prePass(linelist* list, FILE* in) {
 	while (!feof(in)) {
 		printf("line %d: ", lineNum);
 		line* templine = malloc(sizeof(line));
+		for (int i = 0; i < 4; i++) {
+			templine->unparsed[i] = malloc(sizeof(char) * 20);
+		}
 		for (int i = 0; i < 5; i++) {
-		templine->unparsed[i] = malloc(sizeof(char) * 20);
 			if (readNextSection(templine->unparsed[i], 20, in)) {
 				return 1;
 			}
@@ -106,136 +108,6 @@ int prePass(linelist* list, FILE* in) {
 	return 0;
 }
 
-
-/* IMPLEMENT THIS IN LATER PASSES
-// Returns 1 if parsing ever stops (EOF or error), 0 if not
-int parseLine(FILE* in, instructionlist* list) {
-	char buffer[50] = "";
-	unsigned short stack, op;
-	instruction* inst = malloc(sizeof(instruction));
-	inst->d.type = NULL_TP;
-	// Read first line
-	if (readNextSection(buffer, 50, in)) {
-		return 1;
-	}
-
-	if (buffer[0] == ';' || buffer[0] == '\n') { // Check if line is commented or whitespace
-		return 0;
-	}
-	if (strlen(buffer) == 1) {
-		stack = buffer[0] - '0';
-		if (stack < 0 || stack > 7) {
-			printf("ASSEMBLY ERROR: Invalid stack\n");
-			return 1;
-		}	
-		if (readNextSection(buffer, 50, in)) {
-			printf("ASSEMBLY ERROR: Early EOF reached\n");
-			return 1;
-		}
-	} else { // Handle stack "carryover"
-		if (list->tail != NULL) {
-			stack = list->tail->d.instruction >> 8; // Is this the right way to do this?
-		} else { // Default is 0
-			stack = 0;
-		}
-	}
-	
-	// Read instruction
-	
-	if (buffer[0] == '\n') {
-		printf("ASSEMBLY ERROR: Instruction not found\n");
-	}
-
-	if (!strcasecmp(buffer, "EXEC")) {
-		op = EXEC_OP;
-		// --- STACK OPERATIONS ---
-	} else if (!strcasecmp(buffer, "POP")) {
-		op = POP_OP;
-	} else if (!strcasecmp(buffer, "PUSH")) {
-		op = PUSH_OP;
-		if (readNextSection(buffer, 50, in)) {
-			printf("ASSEMBLY ERROR: Early EOF reached\n");
-			return 1;
-		}
-		if (buffer[0] == '\n') {
-			printf("ASSEMBLY ERROR: Argument not given\n");
-		}
-		if (!strcasecmp(buffer, "#")) {
-			inst->d.type = INT_TP;
-			fscanf(in, "%d", &inst->d.intvalue);
-		} else if (!strcasecmp(buffer, "\'")) {
-			inst->d.type = CHAR_TP;
-			fscanf(in, "%c", &inst->d.intvalue);
-		} else if (!strcasecmp(buffer, ".")) {
-			inst->d.type = DOUB_TP;
-			fscanf(in, "%lf", &inst->d.doublevalue);
-		} else {
-			printf("ASSEMBLY ERROR: Invalid argument type\n");
-		}
-		op |= inst->d.type;
-	} else if (!strcasecmp(buffer, "SWAP")) {
-		op = SWAP_OP;
-	} else if (!strcasecmp(buffer, "DROP")) {
-		op = DROP_OP;
-	} else if (!strcasecmp(buffer, "ADD")) {
-		op = ARTH_OP | ADD_AL;
-	} else if (!strcasecmp(buffer, "SUB")) {
-		op = ARTH_OP | SUB_AL;
-	} else if (!strcasecmp(buffer, "MUL")) {
-		op = ARTH_OP | MUL_AL;
-	} else if (!strcasecmp(buffer, "DIV")) {
-		op = ARTH_OP | DIV_AL;
-	} else if (!strcasecmp(buffer, "AND")) {
-		op = ARTH_OP | AND_AL;
-	} else if (!strcasecmp(buffer, "LOR")) {
-		op = ARTH_OP | LOR_AL;
-	} else if (!strcasecmp(buffer, "NOT")) {
-		op = ARTH_OP | NOT_AL;
-	} else if (!strcasecmp(buffer, "XOR")) {
-		op = ARTH_OP | XOR_AL;
-		// --- COMPARATOR OPERATIONS ---
-	} else if (!strcasecmp(buffer, "CMEQ")) {
-		op = COMP_OP | EQ;
-	} else if (!strcasecmp(buffer, "CMNE")) {
-		op = COMP_OP | NE;
-	} else if (!strcasecmp(buffer, "CMGT")) {
-		op = COMP_OP | GT;
-	} else if (!strcasecmp(buffer, "CMLE")) {
-		op = COMP_OP | LE;
-	} else if (!strcasecmp(buffer, "CMLT")) {
-		op = COMP_OP | LT;
-	} else if (!strcasecmp(buffer, "CMGE")) {
-		op = COMP_OP | GE;	
-	} else if (!strcasecmp(buffer, "LTRL")) {
-		op = LTRL_OP;
-	} else if (!strcasecmp(buffer, "TYPE")) {
-		op = TYPE_OP;
-	} else if (!strcasecmp(buffer, "RTYP")) { // TODO add argument handling for this later
-		op = RTYP_OP;
-	} else if (!strcasecmp(buffer, "IPUT")) {
-		op = IPUT_OP;
-	} else if (!strcasecmp(buffer, "OPUT")) {
-		op = OPUT_OP;	
-	} else if (!strcasecmp(buffer, "GOTO")) {
-		op = GOTO_OP;
-	} else if (!strcasecmp(buffer, "GOIF")) {
-		op = GOTO_OP | COND_BR;
-	} else if (!strcasecmp(buffer, "JUMP")) {
-		op = JUMP_OP;
-	} else if (!strcasecmp(buffer, "JPIF")) {
-		op = JUMP_OP | COND_BR;
-	} else {
-		printf("ASSEMBLY ERROR: Invalid instruction\n");
-		return 1;
-	}
-	inst->d.instruction = stack << 8 | op;
-	// Handle instruction position
-	inst->pos = (list->head == NULL) ? 1 : list->tail->pos + 1;
-	pushInstruction(list, inst);
-	nextLine(in);
-	return 0;
-} */
-
 // --- PASS 1 ---
 // - Handle DEFN replacements
 // - Remove empty lines
@@ -245,7 +117,7 @@ int pass1(linelist* list) {
 	line* currline = list->head;
 	treenode* defntree = NULL; // Use to replace any values
 	char defnbuff[50];
-	bool firstexec;
+	bool firstexec = false;
 	while (currline != NULL) {
 		if (!strcasecmp(currline->unparsed[0], "DEFN")) {
 			char keyword[50] = "@";
@@ -289,13 +161,109 @@ int pass1(linelist* list) {
 		strcpy(currline->unparsed[1], "\n");
 		pushLine(list, currline, true);
 	}
+	freeMap(defntree);
 	return 0;
 }
 
-// --- PASSES 2-4 ---
-// Pass 2: Store all MARK locations, delete from linelist
-// Pass 3: Parse all lines to instructions
-// Pass 4: Rework all JUMPS and GOTOS to use instruction positions instead of MARKS
+// --- PASS 2 ---
+// - Store MARK locations
+
+bool isDigitString(char* buff) {
+	while (buff != NULL) {
+		if (!isdigit(*buff)) {
+			return false;
+		}
+		buff++;
+	}
+	return true;
+}
+
+// Returns 1 if error, 0 if not
+int parseLine(line* line, instructionlist* list, unsigned int stack) {
+	unsigned short unparsedpos = 0;
+	bool hasArgument = false;
+	char* temp; // Only used in strtol
+	if (isDigitString(line->unparsed[unparsedpos])) {
+		stack = strtol(line->unparsed[unparsedpos++], &temp, 10);
+	}
+	
+	if (stack < 0 || stack > 7) {
+		printf("ASSEMBLY ERROR: Stack number undefined\n");
+		return 1;
+	}
+	
+	disk* tempdisk = malloc(sizeof(disk));
+	tempdisk->isInstruction = true;
+	// Instruction handling
+	if (!strcasecmp(line->unparsed[unparsedpos], "POP")) {
+		tempdisk->instruction = POP_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "TOP")) {
+		tempdisk->instruction = TOP_OP;	
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "PUSH")) {
+		tempdisk->instruction = POP_OP;
+		hasArgument = true;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "SWAP")) {
+		tempdisk->instruction = SWAP_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "DROP")) {
+		tempdisk->instruction = DROP_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "ADD")) {
+		tempdisk->instruction = ARTH_OP | ADD_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "SUB")) {
+		tempdisk->instruction = ARTH_OP | SUB_AL; 
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "MUL")) {
+		tempdisk->instruction = ARTH_OP | MUL_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "DIV")) {
+		tempdisk->instruction = ARTH_OP | DIV_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "AND")) {
+		tempdisk->instruction = ARTH_OP | AND_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "LOR")) {
+		tempdisk->instruction = ARTH_OP | LOR_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "NOT")) {
+		tempdisk->instruction = ARTH_OP | NOT_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "XOR")) {
+		tempdisk->instruction = ARTH_OP | XOR_AL;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMEQ")) {
+		tempdisk->instruction = COMP_OP | EQ;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMNE")) {
+		tempdisk->instruction = COMP_OP | NE;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMGT")) {
+		tempdisk->instruction = COMP_OP | GT;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMLE")) {
+		tempdisk->instruction = COMP_OP | LE;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMLT")) {
+		tempdisk->instruction = COMP_OP | LT;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMGE")) {
+		tempdisk->instruction = COMP_OP | GE;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "LTRL")) {
+		tempdisk->instruction = LTRL_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "TYPE")) {
+		tempdisk->instruction = TYPE_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "RTYP")) {
+		tempdisk->instruction = RTYP_OP;
+		hasArgument = true;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "IPUT")) {
+		tempdisk->instruction = IPUT_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "OPUT")) {
+		tempdisk->instruction = OPUT_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "GOTO")) {
+		tempdisk->instruction = GOTO_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "JUMP")) {
+		tempdisk->instruction = JUMP_OP;
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "EXEC")) {
+		tempdisk->instruction = EXEC_OP;
+	} else {
+		printf("ASSEMBLY ERROR: Unknown instruction\n");
+		free(tempdisk);
+		return 1;
+	}
+	unparsedpos++;
+	if (hasArgument) {
+		// TODO Finish this!!!
+	}
+	return 0;
+}
+
+// Pass 3: Rework all JUMPS and GOTOS to use instruction positions instead of MARKS
 
 int main() { // TODO use command line arguments
 	FILE* in = fopen("test.stacscrp", "rb");
@@ -321,10 +289,12 @@ int main() { // TODO use command line arguments
 		}
 		currline = currline->next;
 	}
+	
+	
 
 	// Clean up
 	fclose(in);
 	//fclose(out);
-	//freeInstructionList(&list);
+	freeLineList(&list);
 	return 0;
 }

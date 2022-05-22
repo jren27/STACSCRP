@@ -23,6 +23,16 @@ void pushLine(linelist* list, line* line, bool front) {
 	list->tail = list->tail->next;
 }
 
+void freeLine(line* l) {
+	if (l == NULL) {
+		return;
+	}
+	for (int i = 0; i < 4; i++) {
+		free(l->unparsed[i]);
+	}
+	free(l);
+}
+
 // Removes line l from linelist (l MUST BE IN list, BE VERY CAREFUL!)
 // Returns previous line to make traversal easier
 line* removeLine(linelist* list, line* l) {
@@ -30,26 +40,26 @@ line* removeLine(linelist* list, line* l) {
 		return NULL;
 	}
 	if (l->next == NULL && l->prev == NULL) {
-		free(list->head);
+		freeLine(list->head);
 		list->head = list->tail = NULL;
 		return NULL;
 	}
 	if (l->next == NULL) {
 		list->tail = list->tail->prev;
-		free(list->tail->next);
+		freeLine(list->tail->next);
 		list->tail->next = NULL;
 		return list->tail;
 	}
 	if (l->prev == NULL) {
 		list->head = list->head->next;
-		free(list->head->prev);
+		freeLine(list->head->prev);
 		list->head->prev = NULL;
 		return list->head;
 	}
 	line* temp = l->prev;
 	temp->next = l->next;
 	l->next->prev = temp;
-	free(l);
+	freeLine(l);
 	return temp;
 }
 
@@ -67,6 +77,20 @@ void pushInstruction(instructionlist* list, instruction* inst) {
 	list->tail = list->tail->next;
 }
 
+void freeLineList(linelist* list) {
+	line* currline = list->head;
+	line* templine;
+	if (currline == NULL) {
+		return;
+	}
+	while (currline != NULL) {
+		templine = currline->next;
+		freeLine(currline);
+		currline = templine;
+	}
+}
+
+// TODO write a freeInstruction()
 // Removes line l from linelist (l MUST BE IN list, BE VERY CAREFUL!)
 void removeInstruction(instructionlist* list, instruction* inst) {
 	if (inst == NULL) {

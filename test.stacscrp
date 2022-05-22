@@ -1,12 +1,17 @@
+	DEFN	BRUH	#69420
+	DEFN	AYY		.11.11111
+	DEFN	BRUH	'A
+
+	EXEC	LOL
 1	PUSH 	#10
-2	PUSH	.20.101
-	PUSH	#30
+2	PUSH	@AYY
+	PUSH	@BRUH
 	ADD ; OMG this is a test comment!
 
-
+	EXEC
 ; lmao
 
-
+	EXEC	EXEC
 1	POP
 2	DROP
 2	DIV                      ; I am here to screw things up

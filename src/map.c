@@ -29,9 +29,9 @@ treenode* insertNode(treenode* root, char* key, char* value) {
 	currnode->left = currnode->right = NULL;
 	if (compare < 0) {
 		prevnode->left = currnode;
-		return root;
 	}
 	prevnode->right = currnode;
+	return root;
 }
 
 int getNode(treenode* root, char* key, char* buffer) {
