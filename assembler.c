@@ -121,7 +121,7 @@ int pass1(linelist* list) {
 	while (currline != NULL) {
 		if (!strcasecmp(currline->unparsed[0], "DEFN")) {
 			char keyword[50] = "@";
-			strncat(keyword, currline->unparsed[1], 50);
+			strncat(keyword, currline->unparsed[1], 49);
 			defntree = insertNode(defntree, keyword, currline->unparsed[2]);
 			currline = removeLine(list, currline);
 			continue;
@@ -178,29 +178,101 @@ bool isDigitString(char* buff) {
 	return true;
 }
 
+// atoi() and strtol() don't really handle edge cases well...
+bool stringtoint(char* buff, int* value) {
+	unsigned int index = 0;
+	char tempchar = buff[index++];
+	*value = 0;
+	int tempint;
+	while (tempchar != '\0') {
+		if (!isdigit(tempchar)) {
+			return false;
+		}
+		tempint = tempchar - '0';
+		*value *= 10;
+		*value += tempint;
+		tempchar = buff[index++];
+	}
+	return true;
+}
+
+
+bool stringtodouble(char* buff, double* value) {
+	unsigned int index = 0;
+	char tempchar = buff[index++];
+	*value = 0;
+	double tempdouble;
+	while (tempchar != '\0') {
+		if (tempchar == '.') {
+			break;
+		} else if (!isdigit(tempchar)) {
+			return false;
+		}
+		tempdouble = tempchar - '0';
+		*value *= 10;
+		*value += tempdouble;
+		tempchar = buff[index++];
+	}
+	if (tempchar == '\0') {
+		return true;
+	}
+	// Decimal handling
+	unsigned int decimalpos = 1;
+	tempchar = buff[index++];
+	while (tempchar != '\0') {	
+		if (!isdigit(tempchar)) {
+			return false;
+		}
+		tempdouble = tempchar - '0';
+		tempdouble /= (10 ^ decimalpos);
+		*value += tempdouble;
+		tempchar = buff[index++];
+	}
+	return true;
+}
+
 // Returns 1 if error, 0 if not
-int parseLine(line* line, instructionlist* list, unsigned int stack) {
+int parseLine(line* line, instructionlist* list) {
+	disk* tempdisk = malloc(sizeof(disk));
+	tempdisk->isInstruction = true;
+
+	// Edge case: EXEC
+	if (!strcasecmp(line->unparsed[0], "EXEC")) {
+		tempdisk->instruction = EXEC_OP;
+		// Would a goto make more sense?
+		instruction* inst = malloc(sizeof(instruction));
+		inst->d = tempdisk;
+		if (list->head == NULL) {
+			inst->pos = 0;
+		} else {
+			inst->pos = list->tail->pos + 1;
+		}
+		pushInstruction(list, inst);
+		return 0;
+	}
+
 	unsigned short unparsedpos = 0;
 	bool hasArgument = false;
-	char* temp; // Only used in strtol
-	if (isDigitString(line->unparsed[unparsedpos])) {
-		stack = strtol(line->unparsed[unparsedpos++], &temp, 10);
+	int stack = 0;
+	if (stringtoint(line->unparsed[unparsedpos], &stack)) {
+		unparsedpos++;
+	} else {
+		if (list->tail != NULL && list->tail->d->instruction != EXEC_OP) {
+			stack = (list->tail->d->instruction >> 8);
+		}
 	}
-	
 	if (stack < 0 || stack > 7) {
 		printf("ASSEMBLY ERROR: Stack number undefined\n");
 		return 1;
 	}
 	
-	disk* tempdisk = malloc(sizeof(disk));
-	tempdisk->isInstruction = true;
 	// Instruction handling
 	if (!strcasecmp(line->unparsed[unparsedpos], "POP")) {
 		tempdisk->instruction = POP_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "TOP")) {
 		tempdisk->instruction = TOP_OP;	
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "PUSH")) {
-		tempdisk->instruction = POP_OP;
+		tempdisk->instruction = PUSH_OP;
 		hasArgument = true;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "SWAP")) {
 		tempdisk->instruction = SWAP_OP;
@@ -256,9 +328,71 @@ int parseLine(line* line, instructionlist* list, unsigned int stack) {
 		free(tempdisk);
 		return 1;
 	}
+
+	tempdisk->instruction |= (stack << 8);
+
 	unparsedpos++;
 	if (hasArgument) {
-		// TODO Finish this!!!
+		if (line->unparsed[unparsedpos][0] == '\n') {
+			printf("ASSEMBLY ERROR: Expected argument not found\n");
+			return 1;
+		}
+		char* bufferpos = line->unparsed[unparsedpos];
+		switch (*(bufferpos++)) {
+			case '#':
+				tempdisk->type = INT_TP;
+				if (!stringtoint(bufferpos, &(tempdisk->intvalue))) {
+					printf("ASSEMBLY ERROR: Invalid integer argument\n");
+					return 1;
+				}
+				break;
+			case '\'':
+				tempdisk->type = CHAR_TP;
+				if (strlen(bufferpos) != 1) {
+					printf("ASSEMBLY ERROR: Invalid character argument\n");
+					return 1;
+				}
+				tempdisk->intvalue = *bufferpos;
+				break;
+			case '.':
+				if (!stringtodouble(bufferpos, &(tempdisk->doublevalue))) {
+					printf("ASSEMBLY ERROR: Invalid double argument\n");
+					return 1;
+				}
+				tempdisk->type = DOUB_TP;
+				break;
+			default:
+				printf("ASSEMBLY ERROR: Invalid argument type\n");
+				return 1;
+		}
+	} else {
+		if (line->unparsed[unparsedpos][0] != '\n') {
+			printf("ASSEMBLY ERROR: Unexpected argument found\n");
+			return 1;
+		}
+		tempdisk->type = NULL_TP;
+	}
+
+	// Now put it all together
+	instruction* inst = malloc(sizeof(instruction));
+	inst->d = tempdisk;
+	if (list->head == NULL) {
+		inst->pos = 0;
+	} else {
+		inst->pos = list->tail->pos + 1;
+	}
+	pushInstruction(list, inst);
+	return 0;
+}
+
+int pass2(instructionlist* ilist, linelist* llist) {
+	ilist->head = ilist->tail = NULL;
+	line* l = llist->head;
+	while (l != NULL) {
+		if (parseLine(l, ilist)) {
+			return 1;
+		}
+		l = l->next;
 	}
 	return 0;
 }
@@ -270,15 +404,15 @@ int main() { // TODO use command line arguments
 	//FILE* out = fopen("out.bin", "w+");
 	//fputc(-1, out);
 	
-	linelist list;
-	if (prePass(&list, in)) {
+	linelist llist;
+	if (prePass(&llist, in)) {
 		return 1;
 	}
-	pass1(&list);
+	pass1(&llist);
 	
 	// Test
 	printf("\nPASS 1:\n");
-	line* currline = list.head;
+	line* currline = llist.head;
 	while (currline != NULL) {
 		for (int i = 0; i < 4; i++) {
 			if (currline->unparsed[i][0] == '\n') {
@@ -289,12 +423,21 @@ int main() { // TODO use command line arguments
 		}
 		currline = currline->next;
 	}
+	instructionlist ilist;
 	
-	
+	pass2(&ilist, &llist);
+
+	printf("\nPASS 2:\n");
+	instruction* currinst = ilist.head;
+	while (currinst != NULL) {
+		printf("%x\n", currinst->d->instruction);
+		currinst = currinst->next;
+	}
 
 	// Clean up
 	fclose(in);
 	//fclose(out);
-	freeLineList(&list);
+	freeLineList(&llist);
+	freeInstructionList(&ilist);
 	return 0;
 }

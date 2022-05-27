@@ -51,7 +51,7 @@ typedef struct line {
 } line;
 
 typedef struct instruction {
-	disk d;
+	disk* d;
 	unsigned int pos;
 	struct instruction* next;
 	struct instruction* prev;
@@ -73,7 +73,8 @@ line* removeLine(linelist* list, line* l);
 void freeLineList(linelist* list);
 
 void pushInstruction(instructionlist* list, instruction* inst);
-void removeInstruction(instructionlist* list, instruction* l);
+void removeInstruction(instructionlist* list, instruction* l); // Do I really need this?
+void freeInstruction(instruction* i);
 void freeInstructionList(instructionlist* list);
 
 #endif

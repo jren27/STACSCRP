@@ -90,30 +90,37 @@ void freeLineList(linelist* list) {
 	}
 }
 
-// TODO write a freeInstruction()
+void freeInstruction(instruction* i) {
+	if (i == NULL) {
+		return;
+	}
+	free(i->d);
+	free(i);
+}
+
 // Removes line l from linelist (l MUST BE IN list, BE VERY CAREFUL!)
 void removeInstruction(instructionlist* list, instruction* inst) {
 	if (inst == NULL) {
 		return;
 	}
 	if (inst->next == NULL && inst->prev == NULL) {
-		free(list->head);
+		freeInstruction(list->head);
 		list->head = list->tail = NULL;
 		return;
 	}
 	if (inst->next == NULL) {
 		list->tail = list->tail->prev;
-		free(list->tail);
+		freeInstruction(list->tail);
 		return;
 	}
 	if (inst->prev == NULL) {
 		list->head = list->head->next;
-		free(list->head);
+		freeInstruction(list->head);
 		return;
 	}
 	inst->prev->next = inst->next;
 	inst->next->prev = inst->prev;
-	free(inst);
+	freeInstruction(inst);
 }
 
 void freeInstructionList(instructionlist* list) {
@@ -122,7 +129,7 @@ void freeInstructionList(instructionlist* list) {
 	
 	while (currinst != NULL) {
 		nextinst = nextinst->next;
-		free(currinst);
+		freeInstruction(currinst);
 		currinst = nextinst;
 	}
 }
