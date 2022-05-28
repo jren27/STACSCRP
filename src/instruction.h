@@ -52,6 +52,10 @@ typedef struct line {
 
 typedef struct instruction {
 	disk* d;
+<<<<<<< Updated upstream
+=======
+	char markkey[50]; // literally only used for JUMP/GOTO stuff
+>>>>>>> Stashed changes
 	unsigned int pos;
 	struct instruction* next;
 	struct instruction* prev;

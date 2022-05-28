@@ -254,6 +254,11 @@ int parseLine(line* line, instructionlist* list) {
 	unsigned short unparsedpos = 0;
 	bool hasArgument = false;
 	int stack = 0;
+<<<<<<< Updated upstream
+=======
+	char markkey[50];
+	markkey[0] = '\0'; // in case
+>>>>>>> Stashed changes
 	if (stringtoint(line->unparsed[unparsedpos], &stack)) {
 		unparsedpos++;
 	} else {
@@ -319,8 +324,32 @@ int parseLine(line* line, instructionlist* list) {
 		tempdisk->instruction = OPUT_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "GOTO")) {
 		tempdisk->instruction = GOTO_OP;
+		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
+			printf("ASSEMBLY ERROR: Expected MARK not found");
+			return 1;
+		}
+		strcpy(line->unparsed[unparsedpos], markkey);
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "GOIF")) {
+		tempdisk->instruction = GOTO_OP | COND_BR;
+		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
+			printf("ASSEMBLY ERROR: Expected MARK not found");
+			return 1;
+		}
+		strcpy(line->unparsed[unparsedpos], markkey);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "JUMP")) {
 		tempdisk->instruction = JUMP_OP;
+		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
+			printf("ASSEMBLY ERROR: Expected MARK not found");
+			return 1;
+		}
+		strcpy(line->unparsed[unparsedpos], markkey);
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "JPIF")) {
+		tempdisk->instruction = JUMP_OP | COND_BR;
+		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
+			printf("ASSEMBLY ERROR: Expected MARK not found");
+			return 1;
+		}
+		strcpy(line->unparsed[unparsedpos], markkey);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "EXEC")) {
 		tempdisk->instruction = EXEC_OP;
 	} else {
@@ -376,6 +405,10 @@ int parseLine(line* line, instructionlist* list) {
 	// Now put it all together
 	instruction* inst = malloc(sizeof(instruction));
 	inst->d = tempdisk;
+<<<<<<< Updated upstream
+=======
+	strncpy(inst->markkey, markkey, 50);
+>>>>>>> Stashed changes
 	if (list->head == NULL) {
 		inst->pos = 0;
 	} else {
@@ -385,10 +418,30 @@ int parseLine(line* line, instructionlist* list) {
 	return 0;
 }
 
+<<<<<<< Updated upstream
 int pass2(instructionlist* ilist, linelist* llist) {
 	ilist->head = ilist->tail = NULL;
 	line* l = llist->head;
 	while (l != NULL) {
+=======
+int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
+	ilist->head = ilist->tail = NULL;
+	line* l = llist->head;
+	while (l != NULL) {
+		// Store marks
+		if (!strcasecmp(l->unparsed[0], "MARK")) {
+			char tempvalue[50];
+			if (ilist->tail != NULL) {
+				sprintf(tempvalue, "%d", ilist->tail->pos);
+			} else {
+				strcpy(tempvalue, "0");
+			}
+			insertNode(markmap, l->unparsed[1], tempvalue);
+			l = l->next;
+			continue;
+		}
+
+>>>>>>> Stashed changes
 		if (parseLine(l, ilist)) {
 			return 1;
 		}
@@ -398,6 +451,8 @@ int pass2(instructionlist* ilist, linelist* llist) {
 }
 
 // Pass 3: Rework all JUMPS and GOTOS to use instruction positions instead of MARKS
+
+
 
 int main() { // TODO use command line arguments
 	FILE* in = fopen("test.stacscrp", "rb");
@@ -425,7 +480,12 @@ int main() { // TODO use command line arguments
 	}
 	instructionlist ilist;
 	
+<<<<<<< Updated upstream
 	pass2(&ilist, &llist);
+=======
+	treenode* marktree = NULL;
+	pass2(&ilist, &llist, marktree);
+>>>>>>> Stashed changes
 
 	printf("\nPASS 2:\n");
 	instruction* currinst = ilist.head;

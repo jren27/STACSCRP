@@ -1,7 +1,8 @@
 	DEFN	BRUH	#69420
-	DEFN	AYY		.11.11111
+	DEFN	AYY		.12.345678
 	DEFN	BRUH	'A
 
+	MARK	HEHEHE
 	EXEC	LOL
 1	PUSH 	#10
 2	PUSH	@AYY
@@ -14,6 +15,7 @@
 	EXEC	EXEC
 1	POP
 2	DROP
+	JUMP	HEHEHE
 2	DIV                      ; I am here to screw things up
 2	OPUT
 7	POP
