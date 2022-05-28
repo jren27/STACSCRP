@@ -254,11 +254,8 @@ int parseLine(line* line, instructionlist* list) {
 	unsigned short unparsedpos = 0;
 	bool hasArgument = false;
 	int stack = 0;
-<<<<<<< Updated upstream
-=======
 	char markkey[50];
 	markkey[0] = '\0'; // in case
->>>>>>> Stashed changes
 	if (stringtoint(line->unparsed[unparsedpos], &stack)) {
 		unparsedpos++;
 	} else {
@@ -405,10 +402,7 @@ int parseLine(line* line, instructionlist* list) {
 	// Now put it all together
 	instruction* inst = malloc(sizeof(instruction));
 	inst->d = tempdisk;
-<<<<<<< Updated upstream
-=======
 	strncpy(inst->markkey, markkey, 50);
->>>>>>> Stashed changes
 	if (list->head == NULL) {
 		inst->pos = 0;
 	} else {
@@ -418,12 +412,6 @@ int parseLine(line* line, instructionlist* list) {
 	return 0;
 }
 
-<<<<<<< Updated upstream
-int pass2(instructionlist* ilist, linelist* llist) {
-	ilist->head = ilist->tail = NULL;
-	line* l = llist->head;
-	while (l != NULL) {
-=======
 int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
 	ilist->head = ilist->tail = NULL;
 	line* l = llist->head;
@@ -440,8 +428,6 @@ int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
 			l = l->next;
 			continue;
 		}
-
->>>>>>> Stashed changes
 		if (parseLine(l, ilist)) {
 			return 1;
 		}
@@ -479,13 +465,8 @@ int main() { // TODO use command line arguments
 		currline = currline->next;
 	}
 	instructionlist ilist;
-	
-<<<<<<< Updated upstream
-	pass2(&ilist, &llist);
-=======
 	treenode* marktree = NULL;
 	pass2(&ilist, &llist, marktree);
->>>>>>> Stashed changes
 
 	printf("\nPASS 2:\n");
 	instruction* currinst = ilist.head;
