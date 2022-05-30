@@ -178,7 +178,7 @@ bool isDigitString(char* buff) {
 	return true;
 }
 
-// atoi() and strtol() don't really handle edge cases well...
+// atoi() and strtol() don't really handle errors well...
 bool stringtoint(char* buff, int* value) {
 	unsigned int index = 0;
 	char tempchar = buff[index++];
@@ -325,28 +325,28 @@ int parseLine(line* line, instructionlist* list) {
 			printf("ASSEMBLY ERROR: Expected MARK not found");
 			return 1;
 		}
-		strcpy(line->unparsed[unparsedpos], markkey);
+		strcpy(markkey, line->unparsed[unparsedpos]);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "GOIF")) {
 		tempdisk->instruction = GOTO_OP | COND_BR;
 		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
 			printf("ASSEMBLY ERROR: Expected MARK not found");
 			return 1;
 		}
-		strcpy(line->unparsed[unparsedpos], markkey);
+		strcpy(markkey, line->unparsed[unparsedpos]);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "JUMP")) {
 		tempdisk->instruction = JUMP_OP;
 		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
 			printf("ASSEMBLY ERROR: Expected MARK not found");
 			return 1;
 		}
-		strcpy(line->unparsed[unparsedpos], markkey);
+		strcpy(markkey, line->unparsed[unparsedpos]);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "JPIF")) {
 		tempdisk->instruction = JUMP_OP | COND_BR;
 		if (line->unparsed[unparsedpos++ + 1][0] == '\n') {
 			printf("ASSEMBLY ERROR: Expected MARK not found");
 			return 1;
 		}
-		strcpy(line->unparsed[unparsedpos], markkey);
+		strcpy(markkey, line->unparsed[unparsedpos]);
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "EXEC")) {
 		tempdisk->instruction = EXEC_OP;
 	} else {
@@ -412,7 +412,7 @@ int parseLine(line* line, instructionlist* list) {
 	return 0;
 }
 
-int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
+int pass2(instructionlist* ilist, linelist* llist, treenode** markmap) {
 	ilist->head = ilist->tail = NULL;
 	line* l = llist->head;
 	while (l != NULL) {
@@ -420,11 +420,11 @@ int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
 		if (!strcasecmp(l->unparsed[0], "MARK")) {
 			char tempvalue[50];
 			if (ilist->tail != NULL) {
-				sprintf(tempvalue, "%d", ilist->tail->pos);
+				sprintf(tempvalue, "%d", ilist->tail->pos + 1);
 			} else {
 				strcpy(tempvalue, "0");
 			}
-			insertNode(markmap, l->unparsed[1], tempvalue);
+			*markmap = insertNode(*markmap, l->unparsed[1], tempvalue);
 			l = l->next;
 			continue;
 		}
@@ -433,23 +433,70 @@ int pass2(instructionlist* ilist, linelist* llist, treenode* markmap) {
 		}
 		l = l->next;
 	}
+	// TODO check if MARK is at tail and adjust
 	return 0;
 }
 
 // Pass 3: Rework all JUMPS and GOTOS to use instruction positions instead of MARKS
 
+int pass3(instructionlist* ilist, treenode* marktree) {
+	instruction* inst = ilist->head;
+	char temp[50];
+	while (inst != NULL) {
+		if ((inst->d->instruction & 0x00FF) == JUMP_OP || (inst->d->instruction & 0x00FF) == GOTO_OP) {
+			if (getNode(marktree, inst->markkey, temp)) {
+				printf("ASSEMBLY ERROR: Undefined MARK\n");
+				return 1;
+			}
+			if (!stringtoint(temp, &inst->d->intvalue)) {
+				printf("ASSEMBLY ERROR: MARK is not an integer\n");
+				return 1;
+			}
+			if (inst->d->intvalue < 0 || inst->d->intvalue >= ilist->tail->pos) {
+				printf("ASSEMBLY ERROR: MARK is out of range of valid lines\n");
+				return 1;
+			}
+		}
+		inst = inst->next;
+	}
+	return 0;
+}
 
+void writeinstructionlist(FILE* out, instructionlist* ilist) {
+	// Remember to write BACKWARDS!
+	instruction* inst = ilist->tail;
+	while (inst != NULL) {
+		fwrite(&(inst->d->instruction), sizeof(short), 1, out);
+		fwrite(&(inst->d->type), sizeof(char), 1, out);
+		switch (inst->d->type) {
+			case INT_TP:
+				fwrite(&(inst->d->intvalue), sizeof(int), 1, out);
+				break;
+			case CHAR_TP:
+				// Does it start at LSB?
+				fwrite(&(inst->d->intvalue), sizeof(char), 1, out);
+				break;
+			case DOUB_TP:
+				fwrite(&(inst->d->doublevalue), sizeof(double), 1, out);
+				break;
+		}
+		inst = inst->prev;
+	}
+}
 
 int main() { // TODO use command line arguments
 	FILE* in = fopen("test.stacscrp", "rb");
-	//FILE* out = fopen("out.bin", "w+");
+	FILE* out = fopen("out.bin", "w+");
 	//fputc(-1, out);
 	
 	linelist llist;
 	if (prePass(&llist, in)) {
 		return 1;
 	}
-	pass1(&llist);
+
+	if (pass1(&llist)) {
+		return 1;
+	}
 	
 	// Test
 	printf("\nPASS 1:\n");
@@ -466,7 +513,9 @@ int main() { // TODO use command line arguments
 	}
 	instructionlist ilist;
 	treenode* marktree = NULL;
-	pass2(&ilist, &llist, marktree);
+	if (pass2(&ilist, &llist, &marktree)) {
+		return 1;
+	}
 
 	printf("\nPASS 2:\n");
 	instruction* currinst = ilist.head;
@@ -474,11 +523,18 @@ int main() { // TODO use command line arguments
 		printf("%x\n", currinst->d->instruction);
 		currinst = currinst->next;
 	}
+	
+	if (pass3(&ilist, marktree)) {
+		return 1;
+	}
+	
+	writeinstructionlist(out, &ilist);
 
 	// Clean up
 	fclose(in);
-	//fclose(out);
+	fclose(out);
 	freeLineList(&llist);
 	freeInstructionList(&ilist);
+	freeMap(marktree);
 	return 0;
 }
