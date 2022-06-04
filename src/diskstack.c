@@ -71,12 +71,8 @@ void initDisk(disk* d) {
 // Instruction format: stack | instruction | arg datatype | arg value (if not NULL)
 void loadInstruction(disk* d, FILE* stream) {
 	initDisk(d);
-	unsigned short inst = 0;
-	uint8_t buffer = fgetc(stream); // Stack number
-	inst |= (buffer << 8);
-	buffer = fgetc(stream); // Instruction (will fgetc() get truncated to 8b?)
-	inst |= buffer;
-	d->instruction = inst;
+	d->isInstruction = true;
+	fread(&d->instruction, sizeof(short), 1, stream);
 	d->type = fgetc(stream); // Datatype
 	switch (d->type) {
 		case NULL_TP:
