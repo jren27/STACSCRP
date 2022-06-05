@@ -62,6 +62,8 @@ int swap(stack* s) {
 void initDisk(disk* d) {
 	// Set default value to int 0 (is this already set?)
 	d->type = INT_TP;
+	d->boolvalue = false;
+	d->charvalue = '\0';
 	d->intvalue = 0;
 	d->doublevalue = 0;
 	d->isInstruction = false;

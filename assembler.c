@@ -308,8 +308,6 @@ int parseLine(line* line, instructionlist* list) {
 		tempdisk->instruction = COMP_OP | LT;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "CMGE")) {
 		tempdisk->instruction = COMP_OP | GE;
-	} else if (!strcasecmp(line->unparsed[unparsedpos], "LTRL")) {
-		tempdisk->instruction = LTRL_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "TYPE")) {
 		tempdisk->instruction = TYPE_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "RTYP")) {
@@ -365,6 +363,21 @@ int parseLine(line* line, instructionlist* list) {
 		}
 		char* bufferpos = line->unparsed[unparsedpos];
 		switch (*(bufferpos++)) {
+			case '=':
+				tempdisk->type = BOOL_TP;
+				if (strlen(bufferpos) != 1) {
+					printf("ASSEMBLY ERROR: Invalid boolean argument\n");
+					return 1;
+				}
+				if (bufferpos[0] == '0' || toupper(bufferpos[0]) == 'F') {
+					tempdisk->boolvalue = false;
+				} else if (bufferpos[0] == '1' || toupper(bufferpos[0]) == 'T') {
+					tempdisk->boolvalue = true;
+				} else {
+					printf("ASSEMBLY ERROR: Invalid boolean argument\n");
+					return 1;
+				}
+				break;
 			case '#':
 				tempdisk->type = INT_TP;
 				if (!stringtoint(bufferpos, &(tempdisk->intvalue))) {
@@ -378,7 +391,7 @@ int parseLine(line* line, instructionlist* list) {
 					printf("ASSEMBLY ERROR: Invalid character argument\n");
 					return 1;
 				}
-				tempdisk->intvalue = *bufferpos;
+				tempdisk->charvalue = *bufferpos;
 				break;
 			case '.':
 				if (!stringtodouble(bufferpos, &(tempdisk->doublevalue))) {
@@ -469,12 +482,14 @@ void writeinstructionlist(FILE* out, instructionlist* ilist) {
 		fwrite(&(inst->d->instruction), sizeof(short), 1, out);
 		fwrite(&(inst->d->type), sizeof(char), 1, out);
 		switch (inst->d->type) {
-			case INT_TP:
-				fwrite(&(inst->d->intvalue), sizeof(int), 1, out);
+			case BOOL_TP:
+				fwrite(&(inst->d->boolvalue), sizeof(bool), 1, out);
 				break;
 			case CHAR_TP:
-				// Does it start at LSB?
-				fwrite(&(inst->d->intvalue), sizeof(char), 1, out);
+				fwrite(&(inst->d->charvalue), sizeof(char), 1, out);
+				break;
+			case INT_TP:
+				fwrite(&(inst->d->intvalue), sizeof(int), 1, out);
 				break;
 			case DOUB_TP:
 				fwrite(&(inst->d->doublevalue), sizeof(double), 1, out);

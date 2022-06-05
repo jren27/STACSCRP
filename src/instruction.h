@@ -10,19 +10,19 @@
 #define DROP_OP 0x04
 #define ARTH_OP 0x05
 #define COMP_OP 0x06
-#define LTRL_OP 0x07
-#define TYPE_OP 0x08
-#define RTYP_OP 0x09
-#define IPUT_OP 0x0A
-#define OPUT_OP 0x0B
-#define GOTO_OP 0x0C
-#define JUMP_OP 0x0D
+#define TYPE_OP 0x07
+#define RTYP_OP 0x08
+#define IPUT_OP 0x09
+#define OPUT_OP 0x0A
+#define GOTO_OP 0x0B
+#define JUMP_OP 0x0C
 #define EXEC_OP 0xFF
 
 #define NULL_TP 0x00
-#define  INT_TP 0x10
+#define BOOL_TP 0x10
 #define CHAR_TP 0x20
-#define DOUB_TP 0x30
+#define  INT_TP 0x30
+#define DOUB_TP 0x40
 
 #define ADD_AL 0x00
 #define SUB_AL 0x10
@@ -31,7 +31,7 @@
 #define AND_AL 0x40
 #define LOR_AL 0x50
 #define NOT_AL 0x60
-#define XOR_AL 0x00
+#define XOR_AL 0x70
 
 #define EQ 0x00
 #define NE 0x10

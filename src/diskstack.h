@@ -9,6 +9,8 @@
 
 typedef struct disk {
 	uint8_t type; // Stores binary data from stacstrm
+	bool boolvalue;
+	char charvalue;
 	int intvalue; // Can also store bool and char values
 	double doublevalue;
 	bool isInstruction;
