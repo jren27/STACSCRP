@@ -315,6 +315,7 @@ int parseLine(line* line, instructionlist* list) {
 		hasArgument = true;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "IPUT")) {
 		tempdisk->instruction = IPUT_OP;
+		hasArgument = true;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "OPUT")) {
 		tempdisk->instruction = OPUT_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "GOTO")) {
@@ -442,6 +443,14 @@ int pass2(instructionlist* ilist, linelist* llist, treenode** markmap) {
 			continue;
 		}
 		if (parseLine(l, ilist)) {
+			return 1;
+		}
+		// Make sure RTYP and IPUT args are chars
+		// yes this is one if statement
+		if (((ilist->tail->d->instruction | 0x000F) == RTYP_OP
+				|| (ilist->tail->d->instruction | 0x000F) == IPUT_OP)
+				&& ilist->tail->d->type != CHAR_TP) {
+			printf("ASSEMBLY ERROR: RTYP and IPUT arguments must be chars\n");
 			return 1;
 		}
 		l = l->next;

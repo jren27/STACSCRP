@@ -18,7 +18,7 @@ typedef struct disk {
 } disk;
 
 typedef struct stack {
-	disk* contents;
+	disk** contents;
 	unsigned int size;
 	unsigned int capacity;
 } stack;
