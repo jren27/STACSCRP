@@ -451,20 +451,89 @@ int execute(stack* stacks, disk* diskregister) {
 					break;
 				case DOUB_TP:
 					newdisk.charvalue = '.';
-					break;
 			}
 			if (arg1->isInstruction) {
 				newdisk.charvalue = '!';
 			}
 			push(&stacks[currstack], newdisk);
 			break;
-		case RTYP_OP:
-
+		case RTYP_OP: // TODO write retype() in seperate function (expecting 12 cases, too big!)
 			break;
+		case IPUT_OP:
+			initDisk(&newdisk);
+			switch (currdisk->charvalue) {
+				case '=':
+					scanf("%d", &newdisk.intvalue);
+					newdisk.boolvalue = newdisk.intvalue;
+					newdisk.type = BOOL_TP;
+					break;
+				case '\'':
+					scanf("%c", &newdisk.charvalue);
+					newdisk.type = CHAR_TP;
+					break;
+				case '#':
+					scanf("%d", &newdisk.intvalue);
+					newdisk.type = INT_TP;
+					break;
+				case '.':
+					scanf("%lf", &newdisk.doublevalue);
+					newdisk.type = DOUB_TP;
+			}
+			break;
+		case GOTO_OP | COND_BR:
+			if (top(&stacks[currstack], arg1)) {
+				printf("RUNTIME ERROR: Stack is empty\n");
+				return 1;
+			}
+			if (arg1->type != BOOL_TP) {
+				printf("RUNTIME ERROR: Attempted to use a non-boolean for a GOIF conditional\n");
+				return 1;
+			}
+			if (arg1->boolvalue == 0) { // Continue to GOTO if != 0
+				break;
+			}
+		case GOTO_OP:
+			top(&stacks[7], arg2);
+			if (currdisk->type != INT_TP) {
+				printf("RUNTIME ERROR: Cannot store non-integers to system stack\n");
+				return 1;
+			}
+			arg2->intvalue = currdisk->intvalue;
+			increment = false;
+			break;
+		case JUMP_OP | COND_BR:
+			if (top(&stacks[currstack], arg1)) {
+				printf("RUNTIME ERROR: Stack is empty\n");
+				return 1;
+			}
+			if (arg1->type != BOOL_TP) {
+				printf("RUNTIME ERROR: Attempted to use a non-boolean for a JPIF conditional\n");
+				return 1;
+			}
+			if (arg1->boolvalue == 0) { // Continue to JUMP if != 0
+				break;
+			}
+		case JUMP_OP:
+			initDisk(&newdisk);
+			if (currdisk->type != INT_TP) {
+				printf("RUNTIME ERROR: Cannot store non-integers to system stack\n");
+				return 1;
+			}
+			newdisk.intvalue = currdisk->intvalue;
+			push(&stacks[7], newdisk);
+			increment = false;
+			break;
+		default:
+			printf("CRITICAL RUNTIME ERROR: Unknown instruction found\n");
+			return 1;
 	}
 
 	// Update system stack, seek to next instruction
-	
+	top(&stacks[7], arg1);
+	if (increment) {
+		arg1->intvalue++;
+	}
+	seekProgramBook(stacks, arg1->intvalue);
 	return 0;
 }
 
