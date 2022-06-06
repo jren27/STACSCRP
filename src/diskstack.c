@@ -75,7 +75,7 @@ void loadInstruction(disk* d, FILE* stream) {
 	initDisk(d);
 	d->isInstruction = true;
 	fread(&d->instruction, sizeof(short), 1, stream);
-	d->type = fgetc(stream); // Datatype
+	fread(&d->type, sizeof(uint8_t), 1, stream); // Datatype
 	switch (d->type) {
 		case NULL_TP:
 			return;
@@ -83,7 +83,7 @@ void loadInstruction(disk* d, FILE* stream) {
 			fread(&(d->intvalue), sizeof(int), 1, stream);
 			break;
 		case CHAR_TP:
-			fread(&(d->intvalue), sizeof(char), 1, stream);
+			fread(&(d->charvalue), sizeof(char), 1, stream);
 			break;
 		case DOUB_TP:
 			fread(&(d->doublevalue), sizeof(double), 1, stream);
