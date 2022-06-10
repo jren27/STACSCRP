@@ -279,7 +279,9 @@ int parseLine(line* line, instructionlist* list) {
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "SWAP")) {
 		tempdisk->instruction = SWAP_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "DROP")) {
-		tempdisk->instruction = DROP_OP;
+		tempdisk->instruction = DROP_OP;	
+	} else if (!strcasecmp(line->unparsed[unparsedpos], "SIZE")) {
+		tempdisk->instruction = SIZE_OP;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "ADD")) {
 		tempdisk->instruction = ARTH_OP | ADD_AL;
 	} else if (!strcasecmp(line->unparsed[unparsedpos], "SUB")) {
@@ -508,9 +510,27 @@ void writeinstructionlist(FILE* out, instructionlist* ilist) {
 	}
 }
 
-int main() { // TODO use command line arguments
-	FILE* in = fopen("test.stacscrp", "rb");
-	FILE* out = fopen("out.bin", "w+");
+int main(int argc, char* argv[]) { // TODO use command line arguments
+	
+	if (argc != 2 && argc != 3) {
+		printf("Usage:\nassembler [source]\nassembler [source] [target]\n");
+		return 1;
+	}
+	FILE* in = fopen(argv[1], "rb");
+	if (in == NULL) {
+		printf("Source does not exist!\n");
+		return 1;
+	}
+	FILE* out;
+	if (argc == 3) {
+		out = fopen(argv[2], "w+");
+	} else {
+		out = fopen("out.bin", "w+");
+	}
+	if (out == NULL) {
+		printf("Something went wrong!\n");
+		return 1;
+	}
 	//fputc(-1, out);
 	
 	linelist llist;

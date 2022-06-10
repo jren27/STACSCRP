@@ -1,7 +1,7 @@
 build:
 	clear
 	rm -f stacscrp
-	gcc -g -Wall emulator.c src/diskstack.* src/instruction.* -o stacscrp
+	gcc -g -Wall emulator.c src/diskstack.* src/instruction.* -o emulator
 
 run:
 	./stacscrp

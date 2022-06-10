@@ -8,14 +8,15 @@
 #define PUSH_OP 0x02
 #define SWAP_OP 0x03
 #define DROP_OP 0x04
-#define ARTH_OP 0x05
-#define COMP_OP 0x06
-#define TYPE_OP 0x07
-#define RTYP_OP 0x08
-#define IPUT_OP 0x09
-#define OPUT_OP 0x0A
-#define GOTO_OP 0x0B
-#define JUMP_OP 0x0C
+#define SIZE_OP 0x05
+#define ARTH_OP 0x06
+#define COMP_OP 0x07
+#define TYPE_OP 0x08
+#define RTYP_OP 0x09
+#define IPUT_OP 0x0A
+#define OPUT_OP 0x0B
+#define GOTO_OP 0x0C
+#define JUMP_OP 0x0D
 #define EXEC_OP 0xFF
 
 #define NULL_TP 0x00

@@ -60,16 +60,18 @@ int seekProgramBook(stack* stacks, int i) {
 }
 
 // Arg 2 stays on top, update it with result
-int get2Args(stack* stacks, int currstack, disk* arg1, disk* arg2) {
+int get2Args(stack* stacks, int currstack, disk* arg1, disk** arg2) {
 	if (top(&stacks[currstack], arg1)) {
 		printf("RUNTIME ERROR: Stack is empty\n");
 		return 1;
 	}
 	pop(&stacks[currstack]);
-	if (top(&stacks[currstack], arg2)) {
+	// Different than top(), need to point arg2 DIRECTLY to top, not create a copy
+	if (stacks[currstack].size == 0) {
 		printf("RUNTIME ERROR: Stack only contains one argument\n");
 		return 1;
 	}
+	*arg2 = &stacks[currstack].contents[stacks[currstack].size-1];
 	return 0;
 }
 
@@ -88,7 +90,7 @@ int execute(stack* stacks, disk* diskregister) {
 	bool increment = true;
 
 	// For arth/comp stuff
-	disk arg1, arg2;
+	disk arg1, *arg2;
 	disk newdisk;
 	switch (currinst) { //TODO this bigass thing
 		case POP_OP:
@@ -117,12 +119,17 @@ int execute(stack* stacks, disk* diskregister) {
 		case DROP_OP:
 			push(&stacks[currstack], *diskregister);
 			break;
+		case SIZE_OP:
+			initDisk(&newdisk);
+			newdisk.intvalue = stacks[currstack].size;
+			push(&stacks[currstack], *diskregister);
+			break;
 		case ARTH_OP | ADD_AL: // --- ARITHMETIC INSTRUCTIONS ---
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
 			// oh boy
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to add two disks with non-matching types\n");
 				return 1;
 			}
@@ -131,20 +138,20 @@ int execute(stack* stacks, disk* diskregister) {
 					printf("RUNTIME ERROR: Cannot add two booleans\n");
 					return 1;
 				case CHAR_TP:
-					arg2.charvalue += arg1.charvalue;
+					arg2->charvalue += arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue += arg1.intvalue;
+					arg2->intvalue += arg1.intvalue;
 					break;
 				case DOUB_TP:
-					arg2.doublevalue += arg1.doublevalue;
+					arg2->doublevalue += arg1.doublevalue;
 			}
 			break;
 		case ARTH_OP | SUB_AL:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to subtract two disks with non-matching types\n");
 				return 1;
 			}
@@ -153,20 +160,20 @@ int execute(stack* stacks, disk* diskregister) {
 					printf("RUNTIME ERROR: Cannot subtract two booleans\n");
 					return 1;
 				case CHAR_TP:
-					arg2.charvalue -= arg1.charvalue;
+					arg2->charvalue -= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue -= arg1.intvalue;
+					arg2->intvalue -= arg1.intvalue;
 					break;
 				case DOUB_TP:
-					arg2.doublevalue -= arg1.doublevalue;
+					arg2->doublevalue -= arg1.doublevalue;
 			}
 			break;
 		case ARTH_OP | MUL_AL:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to multiply two disks with non-matching types\n");
 				return 1;
 			}
@@ -175,20 +182,20 @@ int execute(stack* stacks, disk* diskregister) {
 					printf("RUNTIME ERROR: Cannot multiply two booleans\n");
 					return 1;
 				case CHAR_TP:
-					arg2.charvalue *= arg1.charvalue;
+					arg2->charvalue *= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue *= arg1.intvalue;
+					arg2->intvalue *= arg1.intvalue;
 					break;
 				case DOUB_TP:
-					arg2.doublevalue *= arg1.doublevalue;
+					arg2->doublevalue *= arg1.doublevalue;
 			}
 			break;
 		case ARTH_OP | DIV_AL:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to divide two disks with non-matching types\n");
 				return 1;
 			}
@@ -197,32 +204,32 @@ int execute(stack* stacks, disk* diskregister) {
 					printf("RUNTIME ERROR: Cannot divide two booleans\n");
 					return 1;
 				case CHAR_TP:
-					arg2.charvalue /= arg1.charvalue;
+					arg2->charvalue /= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue /= arg1.intvalue;
+					arg2->intvalue /= arg1.intvalue;
 					break;
 				case DOUB_TP:
-					arg2.doublevalue /= arg1.doublevalue;
+					arg2->doublevalue /= arg1.doublevalue;
 			}
 			break;
 		case ARTH_OP | AND_AL:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to AND two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg2.boolvalue && arg1.boolvalue;
+					arg2->boolvalue = arg2->boolvalue && arg1.boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.charvalue &= arg1.charvalue;
+					arg2->charvalue &= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue &= arg1.intvalue;
+					arg2->intvalue &= arg1.intvalue;
 					break;
 				case DOUB_TP:
 					printf("RUNTIME ERROR: Cannot AND two doubles\n");
@@ -233,19 +240,19 @@ int execute(stack* stacks, disk* diskregister) {
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to OR two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg2.boolvalue || arg1.boolvalue;
+					arg2->boolvalue = arg2->boolvalue || arg1.boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.charvalue |= arg1.charvalue;
+					arg2->charvalue |= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue |= arg1.intvalue;
+					arg2->intvalue |= arg1.intvalue;
 					break;
 				case DOUB_TP:
 					printf("RUNTIME ERROR: Cannot OR two doubles\n");
@@ -276,19 +283,19 @@ int execute(stack* stacks, disk* diskregister) {
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to XOR two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg2.boolvalue != arg1.boolvalue; // Apparently they do this in code golf
+					arg2->boolvalue = arg2->boolvalue != arg1.boolvalue; // Apparently they do this in code golf
 					break;
 				case CHAR_TP:
-					arg2.charvalue ^= arg1.charvalue;
+					arg2->charvalue ^= arg1.charvalue;
 					break;
 				case INT_TP:
-					arg2.intvalue ^= arg1.intvalue;
+					arg2->intvalue ^= arg1.intvalue;
 					break;
 				case DOUB_TP:
 					printf("RUNTIME ERROR: Cannot XOR two doubles\n");
@@ -299,139 +306,139 @@ int execute(stack* stacks, disk* diskregister) {
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue == arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue == arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue == arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue == arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue == arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue == arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue == arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue == arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case COMP_OP | NE:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue != arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue != arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue != arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue != arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue != arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue != arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue != arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue != arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case COMP_OP | GT:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue > arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue > arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue > arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue > arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue > arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue > arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue > arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue > arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case COMP_OP | LE:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue <= arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue <= arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue <= arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue <= arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue <= arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue <= arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue <= arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue <= arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case COMP_OP | LT:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue < arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue < arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue < arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue < arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue < arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue < arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue < arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue < arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case COMP_OP | GE:
 			if (get2Args(stacks, currstack, &arg1, &arg2)) {
 				return 1;
 			}
-			if (arg1.type != arg2.type) {
+			if (arg1.type != arg2->type) {
 				printf("RUNTIME ERROR: Attempted to compare two disks with non-matching types\n");
 				return 1;
 			}
 			switch (arg1.type) {
 				case BOOL_TP:
-					arg2.boolvalue = arg1.boolvalue >= arg2.boolvalue;
+					arg2->boolvalue = arg1.boolvalue >= arg2->boolvalue;
 					break;
 				case CHAR_TP:
-					arg2.boolvalue = arg1.boolvalue >= arg2.charvalue;
+					arg2->boolvalue = arg1.boolvalue >= arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2.boolvalue = arg1.intvalue >= arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue >= arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2.boolvalue = arg1.intvalue >= arg2.intvalue;
+					arg2->boolvalue = arg1.intvalue >= arg2->intvalue;
 			}
-			arg2.type = BOOL_TP;
+			arg2->type = BOOL_TP;
 			break;
 		case TYPE_OP:
 			if (top(&stacks[currstack], &arg1)) {
@@ -462,6 +469,7 @@ int execute(stack* stacks, disk* diskregister) {
 			break;
 		case IPUT_OP:
 			initDisk(&newdisk);
+			printf(">>> ");
 			switch (currdisk.charvalue) {
 				case '=':
 					scanf("%d", &newdisk.intvalue);
@@ -480,6 +488,7 @@ int execute(stack* stacks, disk* diskregister) {
 					scanf("%lf", &newdisk.doublevalue);
 					newdisk.type = DOUB_TP;
 			}
+			push(&stacks[currstack], newdisk);
 			break;
 		case OPUT_OP:	
 			if (top(&stacks[currstack], &arg1)) {
@@ -513,12 +522,12 @@ int execute(stack* stacks, disk* diskregister) {
 				break;
 			}
 		case GOTO_OP:
-			top(&stacks[7], &arg2);
+			top(&stacks[7], arg2);
 			if (currdisk.type != INT_TP) {
 				printf("RUNTIME ERROR: Cannot store non-integers to system stack\n");
 				return 1;
 			}
-			arg2.intvalue = currdisk.intvalue;
+			arg2->intvalue = currdisk.intvalue;
 			increment = false;
 			break;
 		case JUMP_OP | COND_BR:
@@ -560,10 +569,16 @@ int execute(stack* stacks, disk* diskregister) {
 	return 0;
 }
 
-int main() {
-
-	FILE* f = fopen("out.bin", "r");
-
+int main(int argc, char* argv[]) {
+	if (argc != 2) {
+		printf("Usage: emulator [target]\n");
+		return 1;
+	}
+	FILE* f = fopen(argv[1], "r");
+	if (f == NULL) {
+		printf("Target does not exist!\n");
+		return 1;
+	}
 	// Init
 	stack stacks[8];
 	for (int i = 0; i < 8; i++) {
