@@ -390,11 +390,18 @@ int parseLine(line* line, instructionlist* list) {
 				break;
 			case '\'':
 				tempdisk->type = CHAR_TP;
-				if (strlen(bufferpos) != 1) {
+				if (!strcmp(bufferpos, "\\n")) {
+					tempdisk->charvalue = '\n';
+				} else if (!strcmp(bufferpos, "\\t")) {
+					tempdisk->charvalue = '\t';
+				} else if (!strcmp(bufferpos, "\\0")) {
+					tempdisk->charvalue = '\0';
+				} else if (strlen(bufferpos) != 1) {
 					printf("ASSEMBLY ERROR: Invalid character argument\n");
 					return 1;
+				} else {
+					tempdisk->charvalue = *bufferpos;
 				}
-				tempdisk->charvalue = *bufferpos;
 				break;
 			case '.':
 				if (!stringtodouble(bufferpos, &(tempdisk->doublevalue))) {
@@ -480,6 +487,7 @@ int pass3(instructionlist* ilist, treenode* marktree) {
 				printf("ASSEMBLY ERROR: MARK is out of range of valid lines\n");
 				return 1;
 			}
+			inst->d->type = INT_TP;
 		}
 		inst = inst->next;
 	}

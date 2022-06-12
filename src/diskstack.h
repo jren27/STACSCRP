@@ -29,6 +29,7 @@ void freeStack(stack* s);
 void push(stack* s, disk d);
 int pop(stack* s);
 int top(stack* s, disk* d);
+int topDirect(stack* s, disk** d); // The same as top, but points directly to the top of s 
 int swap(stack* s);
 
 // --- DISK FUNCTIONS ---

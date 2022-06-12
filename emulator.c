@@ -522,7 +522,7 @@ int execute(stack* stacks, disk* diskregister) {
 				break;
 			}
 		case GOTO_OP:
-			top(&stacks[7], arg2);
+			topDirect(&stacks[7], &arg2);
 			if (currdisk.type != INT_TP) {
 				printf("RUNTIME ERROR: Cannot store non-integers to system stack\n");
 				return 1;

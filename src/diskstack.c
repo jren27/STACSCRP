@@ -42,6 +42,14 @@ int top(stack* s, disk* d) {
 	return 0;
 }
 
+int topDirect(stack* s, disk** d) {
+	if (s->size == 0) {
+		return 1;
+	}
+	*d = &(s->contents[s->size - 1]);
+	return 0;
+}
+
 // Returns 1 if stack is empty, 0 if no error
 // (not success because swap doesn't do anything for size 1 stack
 int swap(stack* s) {
