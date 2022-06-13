@@ -456,8 +456,8 @@ int pass2(instructionlist* ilist, linelist* llist, treenode** markmap) {
 		}
 		// Make sure RTYP and IPUT args are chars
 		// yes this is one if statement
-		if (((ilist->tail->d->instruction | 0x000F) == RTYP_OP
-				|| (ilist->tail->d->instruction | 0x000F) == IPUT_OP)
+		if (((ilist->tail->d->instruction | 0x0F) == RTYP_OP
+				|| (ilist->tail->d->instruction | 0x0F) == IPUT_OP)
 				&& ilist->tail->d->type != CHAR_TP) {
 			printf("ASSEMBLY ERROR: RTYP and IPUT arguments must be chars\n");
 			return 1;
@@ -474,7 +474,7 @@ int pass3(instructionlist* ilist, treenode* marktree) {
 	instruction* inst = ilist->head;
 	char temp[50];
 	while (inst != NULL) {
-		if ((inst->d->instruction & 0x00FF) == JUMP_OP || (inst->d->instruction & 0x00FF) == GOTO_OP) {
+		if ((inst->d->instruction & 0x000F) == JUMP_OP || (inst->d->instruction & 0x000F) == GOTO_OP) {
 			if (getNode(marktree, inst->markkey, temp)) {
 				printf("ASSEMBLY ERROR: Undefined MARK\n");
 				return 1;

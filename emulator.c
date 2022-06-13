@@ -47,6 +47,7 @@ int seekProgramBook(stack* stacks, int i) {
 		 	top(&stacks[5], &temp);
 			pop(&stacks[5]);
 			push(&stacks[6], temp);
+			continue;
 		}
 		// Flip PB2 -> PB1
 		if (top(&stacks[6], &temp)) {
@@ -67,11 +68,10 @@ int get2Args(stack* stacks, int currstack, disk* arg1, disk** arg2) {
 	}
 	pop(&stacks[currstack]);
 	// Different than top(), need to point arg2 DIRECTLY to top, not create a copy
-	if (stacks[currstack].size == 0) {
+	if (topDirect(&stacks[currstack], arg2)) {
 		printf("RUNTIME ERROR: Stack only contains one argument\n");
 		return 1;
 	}
-	*arg2 = &stacks[currstack].contents[stacks[currstack].size-1];
 	return 0;
 }
 
@@ -550,7 +550,7 @@ int execute(stack* stacks, disk* diskregister) {
 			}
 			newdisk.intvalue = currdisk.intvalue;
 			push(&stacks[7], newdisk);
-			increment = false;
+			//increment = false;
 			break;
 		default:
 			printf("CRITICAL RUNTIME ERROR: Unknown instruction found\n");
@@ -584,7 +584,7 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < 8; i++) {
 		initStack(&stacks[i]);
 	}
-	disk* diskregister = NULL;
+	disk* diskregister = malloc(sizeof(disk));
 	if (prepareProgramBook(f, stacks)) {
 		return 1;
 	}
@@ -600,5 +600,6 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i > 8; i++) {
 		freeStack(&stacks[i]);
 	}
+	free(diskregister);
 	return 0;
 }
