@@ -81,7 +81,7 @@ int prePass(linelist* list, FILE* in) {
 	unsigned int lineNum = 1;
 	nextLine(in); // Prep in case file starts with empty space
 	while (!feof(in)) {
-		printf("line %d: ", lineNum);
+		//printf("line %d: ", lineNum);
 		line* templine = malloc(sizeof(line));
 		for (int i = 0; i < 4; i++) {
 			templine->unparsed[i] = malloc(sizeof(char) * 20);
@@ -91,10 +91,10 @@ int prePass(linelist* list, FILE* in) {
 				return 1;
 			}
 			if (!strcmp(templine->unparsed[i], "\n")) {
-				printf("END\n");
+				//printf("END\n");
 				break;
 			}
-			printf("%s ", templine->unparsed[i]);
+			//printf("%s ", templine->unparsed[i]);
 			// Only happens if newline is never reached
 			if (i == 5) {
 				printf("ASSEMBLY ERROR: More arguments than expected found\n");
@@ -551,6 +551,7 @@ int main(int argc, char* argv[]) { // TODO use command line arguments
 	}
 	
 	// Test
+	/*
 	printf("\nPASS 1:\n");
 	line* currline = llist.head;
 	while (currline != NULL) {
@@ -562,19 +563,19 @@ int main(int argc, char* argv[]) { // TODO use command line arguments
 			printf("%s ", currline->unparsed[i]);
 		}
 		currline = currline->next;
-	}
+	}*/
 	instructionlist ilist;
 	treenode* marktree = NULL;
 	if (pass2(&ilist, &llist, &marktree)) {
 		return 1;
 	}
-
+	/*
 	printf("\nPASS 2:\n");
 	instruction* currinst = ilist.head;
 	while (currinst != NULL) {
 		printf("%x\n", currinst->d->instruction);
 		currinst = currinst->next;
-	}
+	}*/
 	
 	if (pass3(&ilist, marktree)) {
 		return 1;

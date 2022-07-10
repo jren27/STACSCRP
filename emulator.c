@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "src/diskstack.h"
 #include "src/instruction.h"
+
+// Sometimes things happen too fast, this slows output down for easier debugging
+#define SLOWPRINT 0
 
 int prepareProgramBook(FILE* f, stack* stacks) {
 	// Read file to PB2
@@ -11,6 +15,7 @@ int prepareProgramBook(FILE* f, stack* stacks) {
 		d = malloc(sizeof(disk));
 		loadInstruction(d, f);
 		push(&stacks[6], *d);
+		free(d);
 	}
 
 	// Flip through PB2 until EXEC reached
@@ -160,13 +165,13 @@ int execute(stack* stacks, disk* diskregister) {
 					printf("RUNTIME ERROR: Cannot subtract two booleans\n");
 					return 1;
 				case CHAR_TP:
-					arg2->charvalue -= arg1.charvalue;
+					arg2->charvalue = arg1.charvalue - arg2->charvalue;
 					break;
 				case INT_TP:
-					arg2->intvalue -= arg1.intvalue;
+					arg2->intvalue = arg1.intvalue - arg2->intvalue;
 					break;
 				case DOUB_TP:
-					arg2->doublevalue -= arg1.doublevalue;
+					arg2->doublevalue = arg1.doublevalue - arg2->doublevalue;
 			}
 			break;
 		case ARTH_OP | MUL_AL:
@@ -566,6 +571,9 @@ int execute(stack* stacks, disk* diskregister) {
 		stacks[7].contents[stacks[7].size - 1].intvalue++;
 	}
 	seekProgramBook(stacks, stacks[7].contents[stacks[7].size - 1].intvalue);
+#if SLOWPRINT
+	usleep(100000);
+#endif
 	return 0;
 }
 
@@ -588,7 +596,7 @@ int main(int argc, char* argv[]) {
 	if (prepareProgramBook(f, stacks)) {
 		return 1;
 	}
-	printf("Successful load, running...\n");
+	//printf("Successful load, running...\n");
 	while (true) {
 		if (execute(stacks, diskregister)) {
 			break;
@@ -597,7 +605,7 @@ int main(int argc, char* argv[]) {
 
 	// Clean up	
 	fclose(f);
-	for (int i = 0; i > 8; i++) {
+	for (int i = 0; i < 8; i++) {
 		freeStack(&stacks[i]);
 	}
 	free(diskregister);
